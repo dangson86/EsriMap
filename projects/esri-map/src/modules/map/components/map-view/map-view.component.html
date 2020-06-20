@@ -1,0 +1,47 @@
+<div #mapView class="mapView">map not init
+
+</div>
+<div class="toc-wrapper" [class.showTocPanel]="showTocPannel">
+    <div class="tocDiv">
+        <map-toc-ui class="toc" *ngFor="let toc of tocUrlList" [url]="toc.url"
+            (layerSettingChange)="onLayerSettingChange($event)"></map-toc-ui>
+    </div>
+    <div class="toc-menu">
+        <div class="toc-func">
+            <button class="toc-btn" mat-icon-button color="primary" (click)="toggleLeftMenu()">
+                <mat-icon>dashboard</mat-icon>
+            </button>
+        </div>
+        <div class="toc-func">
+            <button class="toc-btn" mat-icon-button color="primary">
+                <mat-icon>done_all</mat-icon>
+            </button>
+        </div>
+
+        <div class="toc-func">
+            <button class="toc-btn" mat-icon-button color="primary">
+                <mat-icon>drag_indicator</mat-icon>
+            </button>
+        </div>
+        <div class="toc-func">
+            <button class="toc-btn" mat-icon-button color="primary">
+                <mat-icon>list</mat-icon>
+            </button>
+        </div>
+    </div>
+</div>
+<div class="bottom-pannel-wrapper" [class.showBottomPanel]="showBottomPannel">
+    <div class="panel-content"></div>
+    <div class="expand-btn">
+        <div class="toc-func">
+            <button class="toc-btn" mat-icon-button color="primary" *ngIf="!showBottomPannel"
+                (click)="toggleBottomPanel()">
+                <mat-icon>expand_less</mat-icon>
+            </button>
+            <button class="toc-btn" mat-icon-button color="primary" *ngIf="showBottomPannel"
+                (click)="toggleBottomPanel()">
+                <mat-icon>expand_more</mat-icon>
+            </button>
+        </div>
+    </div>
+</div>

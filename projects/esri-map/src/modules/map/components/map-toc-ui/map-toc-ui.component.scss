@@ -1,0 +1,42 @@
+:host{
+    display: block;
+}
+
+.mapInfoDiv{
+    .mapName {
+        // color: #ff4081;
+        // text-transform: capitalize;
+        // background-color: aliceblue;
+        // font-size: 1.2em;
+        // width: 100%;
+        // display: block;
+    }
+    .layerDiv{
+        margin-left: 20px;
+        white-space: nowrap;
+        .layerFunctions{
+            display: inline;
+            .functionBtn{
+                vertical-align: middle;
+                padding: 0;
+                &.toggleable:not([disabled]){
+                    color: #bdbdbd;
+                    &.active{
+                        color: blue;
+                    }
+                }
+            }
+        }
+        .legendDiv{
+            .layerLegend{
+                display: block;
+                margin: 0px 0px 0 30px;
+                .legendImg{
+                    max-width: 16px;
+                    max-height: 16px;
+                    vertical-align: middle;
+                }
+            }
+        }
+    }
+}

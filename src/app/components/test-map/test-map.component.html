@@ -1,0 +1,17 @@
+<input type="text" [(ngModel)]="url" style="width: 100%;">
+<button (click)="setUrl('https://epic.ensiteusa.com/arcgis/rest/services/DS/ParcelTestData/MapServer')">url1</button>
+<button (click)="setUrl('https://epic.ensiteusa.com/arcgis/rest/services/DS/pipeTallyGpsTest/MapServer')">url2</button>
+<button (click)="setUrl('https://epic.ensiteusa.com/arcgis/rest/services/DS/OptiRouteTest/MapServer')">url4</button>
+<button (click)="setUrl('https://epic.ensiteusa.com/arcgis/rest/services/DS/LearnOptiRoute2/MapServer')">url5</button>
+<button (click)="setUrl('https://epic.ensiteusa.com/arcgis/rest/services/DS/LearnOptiRoute/MapServer')">url6</button>
+
+
+<div class="test">
+    <map-view sceneView="true" (loaded)="onmapLoaded($event)" #map>
+        <map-url [id]="'my test'" toc="true" [url]="url"> </map-url>
+        <map-toc [url]="url"></map-toc>
+        <!-- <map-url [id]="'my test 2'" toc="true"
+            [url]="'https://epic.ensiteusa.com/arcgis/rest/services/DS/LearnOptiRoute/MapServer'"> </map-url>
+        <map-toc [url]="'https://epic.ensiteusa.com/arcgis/rest/services/DS/LearnOptiRoute/MapServer'"></map-toc> -->
+    </map-view>
+</div>

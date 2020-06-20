@@ -1,0 +1,53 @@
+import { Injectable } from '@angular/core';
+import { Observable, from, of } from 'rxjs';
+import { mergeMap, switchMap, map } from 'rxjs/operators';
+import { loadModules } from 'esri-loader';
+import esri = __esri; // Esri TypeScript Types
+
+@Injectable({
+    providedIn: 'root'
+})
+export class MapCommonService {
+
+    private GEOMETRY_SERVICE_URL = 'https://utility.arcgisonline.com/ArcGIS/rest/services/Geometry/GeometryServer';
+    getUrljsonInfo(url: string) {
+        return this.esriRequest(url, { query: { f: 'json' }, responseType: 'json' }).pipe(
+            map(e => e.data)
+        );
+    }
+
+    esriRequest(url: string, option?: esri.RequestOptions): Observable<esri.RequestResponse> {
+        return this.loadModules('esri/request').pipe(
+            switchMap(([request]) => {
+                return from(request(url, option));
+            })
+        );
+    }
+    loadModules(...moduleNames: string[]): Observable<any[]> {
+        return from(loadModules(moduleNames));
+    }
+    createExtent(fullExtent: { xmin: number, ymin: number, xmax: number, ymax: number, spatialReference: any })
+        : Observable<esri.Extent> {
+        return this.loadModules('esri/geometry/Extent').pipe(switchMap(([Extent]) => {
+
+            const newExtent = new Extent(fullExtent);
+            console.log(fullExtent, newExtent);
+            return of(newExtent);
+        }));
+    }
+    createSpatialReferenceFromWKT(wkt: string): Observable<esri.SpatialReference> {
+        return this.loadModules('esri/geometry/SpatialReference').pipe(switchMap(([SpatialReference]) => {
+            const temp = new SpatialReference({ wkt });
+            return of(temp);
+        }));
+    }
+    projectGeometry(geometries: esri.Geometry[], outSpatialReference: esri.SpatialReference): Observable<esri.Geometry[]> {
+        return this.loadModules('esri/geometry/projection').pipe(
+            switchMap(([projection]) => from(projection.load()).pipe(
+                map(e => {
+                    return geometries.map(geo => projection.project(geo, outSpatialReference));
+                })
+            ))
+        );
+    }
+}

@@ -1,0 +1,56 @@
+<div class="mapInfoDiv" *ngIf="mapInfo$ | async as mapInfo">
+    <ng-container *ngIf="mapLegends$|async"></ng-container>
+    <mat-accordion>
+        <mat-expansion-panel expanded="true">
+            <mat-expansion-panel-header>
+                <mat-panel-title>
+                    <label title="Map Name" class="mapName">{{mapInfo?.mapName}}</label>
+                </mat-panel-title>
+            </mat-expansion-panel-header>
+            <ng-container *ngIf="layerInfosTree$ | async as layerInfosTree">
+                <ng-container *ngTemplateOutlet="groupLayerTemplate; context:{layers:layerInfosTree, mapInfo:mapInfo}">
+                </ng-container>
+            </ng-container>
+        </mat-expansion-panel>
+    </mat-accordion>
+
+</div>
+
+<ng-template #layerTemplate let-layer="layer" let-mapInfo="mapInfo">
+    <div class="layerDiv">
+        <mat-checkbox (change)="onLayerSelectChange($event, layer, mapInfo)" [(ngModel)]="layer.checked">
+            {{layer?.name}}
+        </mat-checkbox>
+
+        <ng-container *ngIf="layer.layerInfo$ | async as infoDetail">
+            <span class="layerFunctions">
+                <button class="functionBtn toggleable" [class.active]="infoDetail.showLabel" title="toggle label"
+                    mat-icon-button *ngIf="infoDetail.hasLabels" (click)="infoDetail.showLabel = !infoDetail.showLabel">
+                    <mat-icon class="functionBtn">label</mat-icon>
+                </button>
+            </span>
+            <div class="legendDiv" *ngIf="layer.checked && infoDetail.hasLegends">
+                <ng-container *ngTemplateOutlet="layerLegend; context:{$implicit:infoDetail, infoDetail:infoDetail}">
+                </ng-container>
+            </div>
+        </ng-container>
+
+        <ng-container *ngIf="layer.isGroupLayer">
+            <ng-container *ngTemplateOutlet="groupLayerTemplate; context:{layers:layer.subLayerInfos, mapInfo:mapInfo}">
+            </ng-container>
+        </ng-container>
+    </div>
+</ng-template>
+
+<ng-template #groupLayerTemplate let-layers="layers" let-mapInfo="mapInfo">
+    <ng-container *ngFor="let layer of layers">
+        <ng-container *ngTemplateOutlet="layerTemplate; context:{layer:layer, mapInfo:mapInfo}"></ng-container>
+    </ng-container>
+</ng-template>
+
+<ng-template #layerLegend let-infoDetail="infoDetail">
+    <span class="layerLegend" *ngFor="let legend of infoDetail.legends">
+        <img class="legendImg" [src]="legend.base64Image" />
+        <label>{{legend?.label}}</label>
+    </span>
+</ng-template>
