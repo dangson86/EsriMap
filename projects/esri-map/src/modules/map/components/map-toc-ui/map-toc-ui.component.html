@@ -25,7 +25,7 @@
         <ng-container *ngIf="layer.layerInfo$ | async as infoDetail">
             <span class="layerFunctions">
                 <button class="functionBtn toggleable" [class.active]="infoDetail.showLabel" title="toggle label"
-                    mat-icon-button *ngIf="infoDetail.hasLabels" (click)="infoDetail.showLabel = !infoDetail.showLabel">
+                    mat-icon-button *ngIf="infoDetail.hasLabels" (click)="toggleLabel(infoDetail)">
                     <mat-icon class="functionBtn">label</mat-icon>
                 </button>
             </span>

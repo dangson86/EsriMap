@@ -4,9 +4,7 @@ import { mergeMap, switchMap, map } from 'rxjs/operators';
 import { loadModules } from 'esri-loader';
 import esri = __esri; // Esri TypeScript Types
 
-@Injectable({
-    providedIn: 'root'
-})
+@Injectable()
 export class MapCommonService {
 
     private GEOMETRY_SERVICE_URL = 'https://utility.arcgisonline.com/ArcGIS/rest/services/Geometry/GeometryServer';

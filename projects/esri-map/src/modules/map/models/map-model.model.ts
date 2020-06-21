@@ -15,3 +15,6 @@ export class LayerSettingChangeModel {
     layerid: number[];
     visible: boolean;
 }
+export class LayerLabelChangeModel extends LayerSettingChangeModel {
+
+}

@@ -63,21 +63,113 @@
     width: 100%;
     position: absolute;
     background-color: white;
-    height: 25%;
-    bottom: -25%;
+    // height: 25%;
+    // bottom: -25%;
     border: 1px solid gray;
     transition: bottom 1s;
     &.showBottomPanel{
-        bottom: 0;
+        bottom: 0!important;
     }
     .panel-content{
         width: 100%;
         height: 100%;
         overflow: auto;
     }
-    .expand-btn{
+    .expand-bar{
         position: absolute;
-        top: -35px;
-        right: 0;
+        height: 8px;
+        width: 100%;
+        background-color: #d0d0d0;
+        top: -9px;
+
+        .expand-buttons{
+            position: absolute;
+            top: -8px;
+            right: 50%;
+            .expand-btn{
+                display: inline-block;
+                margin-left: 3px;
+                position: relative;
+                &.resizebar{
+                    cursor: row-resize;
+                    border: 1.5px solid #4a4a4a;
+                    width: 22px;
+                    top: 11px;
+                    left: -31px;
+                    position: absolute;
+                }
+                &.collapsebtn{
+                    cursor: pointer;
+                }
+            }
+        }
     }
 }
+
+
+
+
+
+.mapProgressBarDiv {
+    width: 100%;
+    position: absolute;
+    top: 0;
+    .sliderBar {
+        display: block;
+        position: absolute;
+        width: 20%;
+        height: 1px;
+
+        &:nth-child(1) {
+            animation: moveRight 3s infinite, colorChange 1s infinite;
+        }
+
+        &:nth-child(2) {
+            animation: moveRight 3s infinite, colorChange 1s infinite;
+            animation-delay: 1s;
+        }
+
+        &:nth-child(3) {
+            animation: moveRight 3s infinite, colorChange 1s infinite;
+            animation-delay: 2s;
+        }
+
+        animation-timing-function:linear !important;
+    }
+}
+
+
+@keyframes moveRight {
+    from {
+        left: -10%;
+    }
+
+    to {
+        left: 110%;
+    }
+}
+
+@keyframes colorChange {
+    from {
+        background: radial-gradient(circle, rgba(63, 94, 251, 1) 0%, rgba(252, 70, 107, 1) 100%);
+    }
+
+    to {
+        background: linear-gradient(90deg, rgba(131, 58, 180, 1) 0%, rgba(253, 29, 29, 1) 50%, rgba(252, 176, 69, 1) 100%);
+    }
+}
+
+
+.mapIsLoading.toc-btn{
+    background: linear-gradient(274deg, #78edcf, #71415f, #9a9faf, #b050b3, #bcc4eb, #575bb1);
+    background-size: 1200% 1200%;
+    animation:  colorChange2 9s ease infinite;
+}
+
+
+@keyframes colorChange2 {
+    0%{background-position:0% 10%}
+    50%{background-position:100% 91%}
+    100%{background-position:0% 10%}
+}
+

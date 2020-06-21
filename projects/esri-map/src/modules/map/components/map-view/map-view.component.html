@@ -1,14 +1,21 @@
 <div #mapView class="mapView">map not init
 
 </div>
+<div class="mapProgressBarDiv" *ngIf="isLoading | async">
+    <div class="sliderBar"></div>
+    <div class="sliderBar"></div>
+    <div class="sliderBar"></div>
+</div>
 <div class="toc-wrapper" [class.showTocPanel]="showTocPannel">
     <div class="tocDiv">
-        <map-toc-ui class="toc" *ngFor="let toc of tocUrlList" [url]="toc.url"
-            (layerSettingChange)="onLayerSettingChange($event)"></map-toc-ui>
+        <map-toc-ui class="toc" *ngFor="let toc of tocUrlList" [url]="toc.url" [mapScale]="mapScale"
+            (layerVisibleChange)="onLayerSettingChange($event)" (layerLabelChange)="onLayerLabelChange($event)">
+        </map-toc-ui>
     </div>
     <div class="toc-menu">
         <div class="toc-func">
-            <button class="toc-btn" mat-icon-button color="primary" (click)="toggleLeftMenu()">
+            <button class="toc-btn" mat-icon-button color="primary" (click)="toggleLeftMenu()"
+                [class.mapIsLoading]="isLoading | async">
                 <mat-icon>dashboard</mat-icon>
             </button>
         </div>
@@ -30,18 +37,33 @@
         </div>
     </div>
 </div>
-<div class="bottom-pannel-wrapper" [class.showBottomPanel]="showBottomPannel">
-    <div class="panel-content"></div>
-    <div class="expand-btn">
-        <div class="toc-func">
-            <button class="toc-btn" mat-icon-button color="primary" *ngIf="!showBottomPannel"
-                (click)="toggleBottomPanel()">
-                <mat-icon>expand_less</mat-icon>
-            </button>
-            <button class="toc-btn" mat-icon-button color="primary" *ngIf="showBottomPannel"
-                (click)="toggleBottomPanel()">
-                <mat-icon>expand_more</mat-icon>
-            </button>
+<div class="bottom-pannel-wrapper" [class.showBottomPanel]="showBottomPannel"
+    [ngStyle]="{'height.px': uiConfig.bottomPanel.height, 'bottom.px': uiConfig.bottomPanel.bottom}">
+    <div class="panel-content" *ngIf="showBottomPannel">
+        <table>
+            <tr>
+                <td>dafdsf</td>
+                <td>dafdsf</td>
+                <td>dafdsf</td>
+                <td>dafdsf</td>
+                <td>dafdsf</td>
+            </tr>
+            <tr>
+                <td>dsfsdgg</td>
+                <td>dsfsdgg</td>
+                <td>dsfsdgg</td>
+                <td>dsfsdgg</td>
+                <td>dsfsdgg</td>
+            </tr>
+        </table>
+    </div>
+    <div class="expand-bar">
+        <div class="expand-buttons">
+            <div class="expand-btn resizebar" *ngIf="showBottomPannel" (mousedown)="onBottomPanelResize($event)"> </div>
+            <div class="expand-btn collapsebtn">
+                <mat-icon *ngIf="!showBottomPannel" (click)="toggleBottomPanel()">expand_less</mat-icon>
+                <mat-icon *ngIf="showBottomPannel" (click)="toggleBottomPanel()">expand_more</mat-icon>
+            </div>
         </div>
     </div>
 </div>

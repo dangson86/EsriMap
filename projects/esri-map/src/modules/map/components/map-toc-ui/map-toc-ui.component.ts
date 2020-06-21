@@ -1,11 +1,11 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { MapCommonService } from '../../services/map-common.service';
 import { switchMap, map, tap, filter, shareReplay, take } from 'rxjs/operators';
-import { of, Observable, BehaviorSubject } from 'rxjs';
+import { of, Observable, BehaviorSubject, ReplaySubject, Subject } from 'rxjs';
 import * as apiModel from '../../models/api-request.models';
 import esri = __esri; // Esri TypeScript Types
 import { MatCheckboxChange } from '@angular/material/checkbox';
-import { LooseObject, LayerSettingChangeModel } from '../../models/map-model.model';
+import { LooseObject, LayerSettingChangeModel, LayerLabelChangeModel } from '../../models/map-model.model';
 import { DomSanitizer } from '@angular/platform-browser';
 
 
@@ -27,8 +27,21 @@ class LayerInfoTree implements apiModel.LayerInfo {
 }
 interface LayerInfoDetail {
   [key: string]: any;
+  showLabel: boolean;
+  hasLabels: boolean;
+  id: number;
+  description: string;
+  displayField: string;
+  canModifyLayer: boolean;
   legends: apiModel.MapLegendDetail[];
   hasLegends?: boolean;
+  geometryType: string;
+  name: string;
+  type: string;
+  drawingInfo: {
+    labelingInfo: esri.LabelClass[],
+    renderer: esri.Renderer
+  };
 }
 
 @Component({
@@ -37,9 +50,8 @@ interface LayerInfoDetail {
   styleUrls: ['./map-toc-ui.component.scss']
 })
 export class MapTocUIComponent implements OnInit {
-
-
   readonly mapUrl$ = new BehaviorSubject<string>(null);
+  readonly mapScale$ = new Subject<number>();
   readonly mapInfo$ = this.mapUrl$.pipe(
     filter(e => e != null),
     switchMap(url => this.mapCommonService.getUrljsonInfo(url)),
@@ -66,21 +78,24 @@ export class MapTocUIComponent implements OnInit {
         list.forEach(item => {
           item.fullUrl = `${this.mapUrl$.value}/${item.id}`;
           item.layerInfo$ = this.mapCommonService.getUrljsonInfo(item.fullUrl).pipe(
-            switchMap((layerInfo: LayerInfoDetail) => this.mapLegends$.pipe(map(mapLegends => {
-              if (mapLegends) {
-                const temp = mapLegends.find(e => e.layerId === layerInfo.id);
-                layerInfo.legends = temp && temp.legend;
-                layerInfo.hasLegends = layerInfo.legends && layerInfo.legends.length > 0;
-                if (layerInfo.hasLegends) {
-                  layerInfo.legends.forEach(l => {
-                    l.base64Image = this.domSanitizer.bypassSecurityTrustResourceUrl(`data:${l.contentType};base64, ${l.imageData}`);
-                  });
+            switchMap((layerInfo: LayerInfoDetail) => this.mapLegends$.pipe(
+              map(mapLegends => {
+                if (mapLegends) {
+                  const temp = mapLegends.find(e => e.layerId === layerInfo.id);
+                  layerInfo.legends = temp && temp.legend;
+                  layerInfo.hasLegends = layerInfo.legends && layerInfo.legends.length > 0;
+                  layerInfo.showLabel = layerInfo.hasLabels;
+                  if (layerInfo.hasLegends) {
+                    layerInfo.legends.forEach(l => {
+                      l.base64Image = this.domSanitizer.bypassSecurityTrustResourceUrl(`data:${l.contentType};base64, ${l.imageData}`);
+                    });
+                  }
                 }
-              }
-              return layerInfo;
-            }))),
+                return layerInfo;
+              }))
+            ),
             // tap(e => {
-            //   console.log(e);
+            //   console.log(e.drawingInfo.labelingInfo);
             // }),
             shareReplay(1)
           );
@@ -89,23 +104,36 @@ export class MapTocUIComponent implements OnInit {
     })
   );
   readonly layerInfosTree$ = this.layerInfos$.pipe(map(list => this.buildTree(list)));
-  @Input() set url(input: string) {
 
+  @Input() set mapScale(input: number) {
+    this.mapScale$.next(input);
+  }
+
+  @Input() set url(input: string) {
     this.mapUrl$.next(input);
   }
-  @Output() layerSettingChange = new EventEmitter<LayerSettingChangeModel>();
+  @Input() isMapLoading: boolean;
+  @Output() layerVisibleChange = new EventEmitter<LayerSettingChangeModel>();
+  @Output() layerLabelChange = new EventEmitter<LayerLabelChangeModel>();
   constructor(private mapCommonService: MapCommonService, private domSanitizer: DomSanitizer) { }
 
   ngOnInit(): void {
   }
   onLayerSelectChange(event: MatCheckboxChange, layer: apiModel.LayerInfo, mapInfo: LooseObject) {
-    this.layerSettingChange.emit({
+    this.layerVisibleChange.emit({
       mapUrl: this.mapUrl$.value,
       visible: event.checked,
       layerid: [layer.id]
     });
   }
-
+  toggleLabel(infoDetail: LayerInfoDetail) {
+    infoDetail.showLabel = !infoDetail.showLabel;
+    this.layerLabelChange.emit({
+      mapUrl: this.mapUrl$.value,
+      visible: infoDetail.showLabel,
+      layerid: [infoDetail.id]
+    });
+  }
 
 
   private buildTree(list: apiModel.LayerInfo[]): LayerInfoTree[] {

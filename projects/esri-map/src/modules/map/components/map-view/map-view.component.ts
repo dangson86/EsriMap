@@ -1,9 +1,9 @@
 import { Component, OnInit, ViewChild, ElementRef, OnDestroy, Output, EventEmitter, ContentChildren, AfterContentInit, QueryList, Input } from '@angular/core';
-import { from, Subject, Observable, of } from 'rxjs';
+import { from, Subject, Observable, of, fromEvent } from 'rxjs';
 import { loadCss, loadScript } from 'esri-loader';
 import { switchMap, tap, takeUntil, shareReplay, map } from 'rxjs/operators';
 import { MapCommonService } from '../../services/map-common.service';
-import { MapInitModel, LayerSettingChangeModel } from '../../models/map-model.model';
+import { MapInitModel, LayerSettingChangeModel, LayerLabelChangeModel } from '../../models/map-model.model';
 import { MapUrlDirective } from './directives/map-url.directive';
 import { MapTocDirective } from './directives/map-toc.directive';
 import esri = __esri; // Esri TypeScript Types
@@ -18,6 +18,7 @@ import { layer } from 'esri/views/3d/support/LayerPerformanceInfo';
 export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
   @Input() sceneView = false;
   @Output() loaded = new EventEmitter<MapInitModel>();
+  @Output() isLoading = new EventEmitter<boolean>();
   @ViewChild('mapView', { static: true }) mapViewElement: ElementRef;
   @ContentChildren(MapUrlDirective) layerUrlList!: QueryList<MapUrlDirective>;
   @ContentChildren(MapTocDirective) tocUrlList!: QueryList<MapTocDirective>;
@@ -31,14 +32,14 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
   private mapInitModel: MapInitModel;
 
   private readonly initMap$: Observable<MapInitModel> = this.loadEsriBaseScript$.pipe(
-    switchMap(e => this.mapCommonService.loadModules('esri/Map', 'esri/views/MapView', 'esri/views/SceneView')),
-    switchMap(([Map, MapView, SceneView]) => {
+    switchMap(e => this.mapCommonService.loadModules('esri/Map', 'esri/views/MapView', 'esri/views/SceneView', 'esri/core/watchUtils')),
+    switchMap(([Map, MapView, SceneView, watchUtils]) => {
       this.clearStaticText();
       const newMap: esri.Map = new Map({
         basemap: 'topo-vector'
       });
       this.mapInitModel = new MapInitModel();
-
+      this.isLoading.emit(true);
       if (this.sceneView) {
         const view: esri.SceneView = new SceneView({
           container: this.mapViewElement.nativeElement,
@@ -57,9 +58,13 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
         });
         this.mapInitModel.mapView = view;
       }
-
+      this.mapInitModel.mapView.watch('scale', e => {
+        this.mapScale = e;
+      });
+      this.mapInitModel.mapView.watch('updating', (e: boolean) => {
+        this.isLoading.emit(e);
+      });
       this.mapInitModel.map = newMap;
-      console.log('map view inited');
       return of(this.mapInitModel);
     }),
     tap(e => {
@@ -70,11 +75,24 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
   );
   showTocPannel = true;
   showBottomPannel: boolean;
+  mapScale: number;
 
-  constructor(private mapCommonService: MapCommonService) {
+
+  readonly uiConfig = {
+    bottomPanel: {
+      height: 25,
+      bottom: -25
+    }
+  };
+
+  private readonly hostMouseMove$: Observable<MouseEvent> = fromEvent(this.elRef.nativeElement, 'mousemove');
+  private readonly hostMouseUp$ = fromEvent(this.elRef.nativeElement, 'mouseup');
+  constructor(private mapCommonService: MapCommonService, private elRef: ElementRef) {
 
   }
+
   ngAfterContentInit(): void {
+    this.initConfig();
     // adding layer from directive
     this.layerUrlList.forEach(layerUrl => {
       if (layerUrl.url) {
@@ -82,9 +100,7 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
           switchMap(view => this.zoomToExtent(view.layer.fullExtent).pipe(
             map(e => view)
           ))
-        ).subscribe(e => { }, err => { }, () => {
-          console.log(`add layer ${layerUrl.url}`);
-        });
+        ).subscribe(e => { }, err => { }, () => { });
 
         layerUrl.urlChange.pipe(
           switchMap(e => this.addLayer(e.id, e.url)),
@@ -143,16 +159,41 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
   onLayerSettingChange(event: LayerSettingChangeModel) {
     this.setLayerVisible(event.mapUrl, event.layerid, event.visible);
   }
+  onLayerLabelChange(event: LayerLabelChangeModel) {
+    this.setLayerLabelVisible(event.mapUrl, event.layerid, event.visible);
+  }
   setLayerVisible(mapUrl: string, layerId: number[], visible: boolean) {
+    const subLayers = this.findSubLayer(mapUrl, layerId);
+    subLayers.forEach(l => {
+      l.visible = visible;
+    });
+  }
+  setLayerLabelVisible(mapUrl: string, layerId: number[], visible: boolean) {
+    const subLayers = this.findSubLayer(mapUrl, layerId);
+    subLayers.forEach(l => {
+      l.labelsVisible = visible;
+    });
+  }
+  onBottomPanelResize(event: DragEvent) {
+    const currentScreenY = event.screenY;
+    const currentHeight = this.uiConfig.bottomPanel.height;
+    this.hostMouseMove$.pipe(
+      tap(e => {
+        const ratio = currentScreenY - e.screenY;
+        this.setBottomPanelHeight(currentHeight + ratio);
+      }),
+      takeUntil(this.hostMouseUp$),
+    ).subscribe();
+  }
+  private findSubLayer(mapUrl: string, layerId: number[]): esri.Sublayer[] {
     const mapSettings = this.layerUrlList.filter(e => e.url === mapUrl);
     if (mapSettings.length > 0) {
       const mapImageLayer = this.mapInitModel.map.findLayerById(mapSettings[0].id) as esri.MapImageLayer;
       if (mapImageLayer) {
-        layerId.forEach(id => {
-          mapImageLayer.findSublayerById(id).visible = visible;
-        });
+        return layerId.map(id => mapImageLayer.findSublayerById(id));
       }
     }
+    return [];
   }
   private initMap() {
     this.initMap$.subscribe();
@@ -161,5 +202,15 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
   private clearStaticText() {
     // clear static text
     this.mapViewElement.nativeElement.textContent = null;
+  }
+  private initConfig() {
+
+    // set init height to 25% of the map height
+    const bottomPanelHeight = this.elRef.nativeElement.clientHeight * 0.25;
+    this.setBottomPanelHeight(bottomPanelHeight);
+  }
+  private setBottomPanelHeight(bottomPanelHeight: number) {
+    this.uiConfig.bottomPanel.height = bottomPanelHeight;
+    this.uiConfig.bottomPanel.bottom = bottomPanelHeight * -1;
   }
 }
