@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild, ElementRef, OnDestroy, Output, EventEmitter, ContentChildren, AfterContentInit, QueryList, Input } from '@angular/core';
-import { from, Subject, Observable, of, fromEvent } from 'rxjs';
+import { from, Subject, Observable, of, fromEvent, merge } from 'rxjs';
 import { loadCss, loadScript } from 'esri-loader';
 import { switchMap, tap, takeUntil, shareReplay, map } from 'rxjs/operators';
 import { MapCommonService } from '../../services/map-common.service';
@@ -73,12 +73,12 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
     takeUntil(this.isDestroyed$),
     shareReplay(1)
   );
-  showTocPannel = true;
-  showBottomPannel: boolean;
   mapScale: number;
 
 
   readonly uiConfig = {
+    showTocPannel: false,
+    showBottomPannel: false,
     bottomPanel: {
       height: 25,
       bottom: -25
@@ -96,15 +96,14 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
     // adding layer from directive
     this.layerUrlList.forEach(layerUrl => {
       if (layerUrl.url) {
-        this.addLayer(layerUrl.id, layerUrl.url).pipe(
+        merge(
+          of({ id: layerUrl.id, url: layerUrl.url }), // init layer
+          layerUrl.urlChange.pipe(map(e => ({ id: e.id, url: e.url })))// change layer if url change
+        ).pipe(
+          switchMap(e => this.addLayer(e.id, e.url)),
           switchMap(view => this.zoomToExtent(view.layer.fullExtent).pipe(
             map(e => view)
-          ))
-        ).subscribe(e => { }, err => { }, () => { });
-
-        layerUrl.urlChange.pipe(
-          switchMap(e => this.addLayer(e.id, e.url)),
-          switchMap(view => this.zoomToExtent(view.layer.fullExtent)),
+          )),
           takeUntil(this.isDestroyed$)
         ).subscribe();
       }
@@ -119,10 +118,10 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
     this.isDestroyed$.next();
   }
   toggleLeftMenu() {
-    this.showTocPannel = !this.showTocPannel;
+    this.uiConfig.showTocPannel = !this.uiConfig.showTocPannel;
   }
   toggleBottomPanel() {
-    this.showBottomPannel = !this.showBottomPannel;
+    this.uiConfig.showBottomPannel = !this.uiConfig.showBottomPannel;
   }
   addLayer(layerId: string, layerUrl: string): Observable<esri.LayerView> {
     return this.initMap$.pipe(

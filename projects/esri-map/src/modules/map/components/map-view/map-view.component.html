@@ -6,7 +6,7 @@
     <div class="sliderBar"></div>
     <div class="sliderBar"></div>
 </div>
-<div class="toc-wrapper" [class.showTocPanel]="showTocPannel">
+<div class="toc-wrapper" [class.showTocPanel]="uiConfig.showTocPannel">
     <div class="tocDiv">
         <map-toc-ui class="toc" *ngFor="let toc of tocUrlList" [url]="toc.url" [mapScale]="mapScale"
             (layerVisibleChange)="onLayerSettingChange($event)" (layerLabelChange)="onLayerLabelChange($event)">
@@ -37,9 +37,9 @@
         </div>
     </div>
 </div>
-<div class="bottom-pannel-wrapper" [class.showBottomPanel]="showBottomPannel"
+<div class="bottom-pannel-wrapper" [class.showBottomPanel]="uiConfig.showBottomPannel"
     [ngStyle]="{'height.px': uiConfig.bottomPanel.height, 'bottom.px': uiConfig.bottomPanel.bottom}">
-    <div class="panel-content" *ngIf="showBottomPannel">
+    <div class="panel-content" *ngIf="uiConfig.showBottomPannel">
         <table>
             <tr>
                 <td>dafdsf</td>
@@ -59,10 +59,11 @@
     </div>
     <div class="expand-bar">
         <div class="expand-buttons">
-            <div class="expand-btn resizebar" *ngIf="showBottomPannel" (mousedown)="onBottomPanelResize($event)"> </div>
+            <div class="expand-btn resizebar" *ngIf="uiConfig.showBottomPannel"
+                (mousedown)="onBottomPanelResize($event)"> </div>
             <div class="expand-btn collapsebtn">
-                <mat-icon *ngIf="!showBottomPannel" (click)="toggleBottomPanel()">expand_less</mat-icon>
-                <mat-icon *ngIf="showBottomPannel" (click)="toggleBottomPanel()">expand_more</mat-icon>
+                <mat-icon *ngIf="!uiConfig.showBottomPannel" (click)="toggleBottomPanel()">expand_less</mat-icon>
+                <mat-icon *ngIf="uiConfig.showBottomPannel" (click)="toggleBottomPanel()">expand_more</mat-icon>
             </div>
         </div>
     </div>
