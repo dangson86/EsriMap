@@ -1,44 +1,47 @@
-<div #mapView class="mapView">map not init
-
-</div>
 <div class="mapProgressBarDiv" *ngIf="isLoading | async">
     <div class="sliderBar"></div>
     <div class="sliderBar"></div>
     <div class="sliderBar"></div>
 </div>
-<div class="toc-wrapper" [class.showTocPanel]="uiConfig.showTocPannel">
-    <div class="tocDiv">
-        <map-toc-ui class="toc" *ngFor="let toc of tocUrlList" [url]="toc.url" [mapScale]="mapScale"
-            (layerVisibleChange)="onLayerSettingChange($event)" (layerLabelChange)="onLayerLabelChange($event)">
-        </map-toc-ui>
-    </div>
-    <div class="toc-menu">
-        <div class="toc-func">
-            <button class="toc-btn" mat-icon-button color="primary" (click)="toggleLeftMenu()"
-                [class.mapIsLoading]="isLoading | async">
-                <mat-icon>dashboard</mat-icon>
-            </button>
-        </div>
-        <div class="toc-func">
-            <button class="toc-btn" mat-icon-button color="primary">
-                <mat-icon>done_all</mat-icon>
-            </button>
-        </div>
 
-        <div class="toc-func">
-            <button class="toc-btn" mat-icon-button color="primary">
-                <mat-icon>drag_indicator</mat-icon>
-            </button>
+
+<div class="mapAndToc">
+    <div #mapView class="mapView">map not init</div>
+    <div class="toc-wrapper" [class.showTocPanel]="uiConfig.showTocPannel">
+        <div class="tocDiv">
+            <map-toc-ui class="toc" *ngFor="let toc of tocUrlList" [url]="toc.url" [mapScale]="mapScale"
+                (layerVisibleChange)="onLayerSettingChange($event)" (layerLabelChange)="onLayerLabelChange($event)">
+            </map-toc-ui>
         </div>
-        <div class="toc-func">
-            <button class="toc-btn" mat-icon-button color="primary">
-                <mat-icon>list</mat-icon>
-            </button>
+        <div class="toc-menu">
+            <div class="toc-func">
+                <button class="toc-btn" mat-icon-button color="primary" (click)="toggleLeftMenu()"
+                    [class.mapIsLoading]="isLoading | async">
+                    <mat-icon>dashboard</mat-icon>
+                </button>
+            </div>
+            <div class="toc-func">
+                <button class="toc-btn" mat-icon-button color="primary">
+                    <mat-icon>done_all</mat-icon>
+                </button>
+            </div>
+
+            <div class="toc-func">
+                <button class="toc-btn" mat-icon-button color="primary">
+                    <mat-icon>drag_indicator</mat-icon>
+                </button>
+            </div>
+            <div class="toc-func">
+                <button class="toc-btn" mat-icon-button color="primary">
+                    <mat-icon>list</mat-icon>
+                </button>
+            </div>
         </div>
     </div>
 </div>
-<div class="bottom-pannel-wrapper" [class.showBottomPanel]="uiConfig.showBottomPannel"
-    [ngStyle]="{'height.px': uiConfig.bottomPanel.height, 'bottom.px': uiConfig.bottomPanel.bottom}">
+
+<div class="bottom-pannel-wrapper" [class.hideBottomPanel]="!uiConfig.showBottomPannel"
+    [ngStyle]="{'height.px': uiConfig.bottomPanel.height}">
     <div class="panel-content" *ngIf="uiConfig.showBottomPannel">
         <table>
             <tr>

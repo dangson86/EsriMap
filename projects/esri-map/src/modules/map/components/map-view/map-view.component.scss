@@ -1,15 +1,21 @@
 :host{
-    display: block;
     height: 100%;
     width: 100%;
     position: relative;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 .mapView{
     width: 100%;
     height: 100%;
 }
-
+.mapAndToc{
+    width: 100%;
+    height: 100%;
+    flex:auto;
+    position: relative;
+}
 .toc-wrapper{
     position: absolute;
     top: 0;
@@ -27,7 +33,7 @@
         max-height: 95%;
         min-height: 51px;
         overflow: auto;
-        background-color: white; 
+        background-color: #80808078;
         border-radius: 5px;
         border: 1px solid #80808078;
         padding: 3px;
@@ -61,14 +67,17 @@
 
 .bottom-pannel-wrapper{
     width: 100%;
-    position: absolute;
+    position: relative;
     background-color: white;
-    // height: 25%;
-    // bottom: -25%;
-    border: 1px solid gray;
+    margin-top: 8px;
+    // border: 1px solid gray;
     transition: bottom 1s;
     &.showBottomPanel{
-        bottom: 0!important;
+    //    height: unset!important;
+    }
+    &.hideBottomPanel{
+        transition: height 1s;
+        height: 0px !important;
     }
     .panel-content{
         width: 100%;
@@ -114,6 +123,7 @@
     width: 100%;
     position: absolute;
     top: 0;
+    z-index: 9;
     .sliderBar {
         display: block;
         position: absolute;
