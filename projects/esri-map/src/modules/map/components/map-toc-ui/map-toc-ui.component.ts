@@ -28,6 +28,7 @@ class LayerInfoTree implements apiModel.LayerInfo {
 interface LayerInfoDetail {
   [key: string]: any;
   showLabel: boolean;
+  identifiable: boolean;
   hasLabels: boolean;
   id: number;
   description: string;
@@ -85,6 +86,7 @@ export class MapTocUIComponent implements OnInit {
                   layerInfo.legends = temp && temp.legend;
                   layerInfo.hasLegends = layerInfo.legends && layerInfo.legends.length > 0;
                   layerInfo.showLabel = layerInfo.hasLabels;
+                  layerInfo.identifiable = true; // turn on by default
                   if (layerInfo.hasLegends) {
                     layerInfo.legends.forEach(l => {
                       l.base64Image = this.domSanitizer.bypassSecurityTrustResourceUrl(`data:${l.contentType};base64, ${l.imageData}`);

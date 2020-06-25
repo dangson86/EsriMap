@@ -30,6 +30,15 @@
                     mat-icon-button *ngIf="infoDetail.hasLabels" (click)="toggleLabel(infoDetail)">
                     <mat-icon class="functionBtn">label</mat-icon>
                 </button>
+                <button class="functionBtn toggleable" [class.active]="infoDetail.identifiable"
+                    title="toggle layer identify tool" mat-icon-button *ngIf="layer.checked"
+                    (click)="infoDetail.identifiable = !infoDetail.identifiable">
+                    <mat-icon class="functionBtn">not_listed_location</mat-icon>
+                </button>
+                <!-- <button class="functionBtn toggleable" [class.active]="infoDetail.showLabel" title="toggle label"
+                    mat-icon-button *ngIf="infoDetail.hasLabels" (click)="toggleLabel(infoDetail)">
+                    <mat-icon class="functionBtn">category</mat-icon>
+                </button> -->
             </span>
             <div class="legendDiv" *ngIf="layer.checked && infoDetail.hasLegends">
                 <ng-container *ngTemplateOutlet="layerLegend; context:{$implicit:infoDetail, infoDetail:infoDetail}">
