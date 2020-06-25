@@ -45,7 +45,7 @@
 </ng-template>
 
 <ng-template #groupLayerTemplate let-layers="layers" let-mapInfo="mapInfo">
-    <div #keyEvent=keyEventDirective keyevent [keys]="['Alt','Control']" [tabindex]="tocIndex">
+    <div #keyEvent=keyEventDirective keyevent [keys]="['Alt','Control']" [tabindex]="tocIndex" style="outline: 0;">
         <ng-container *ngFor="let layer of layers; let index=index">
             <ng-container
                 *ngTemplateOutlet="layerTemplate; context:{layer:layer, layers:layers, mapInfo:mapInfo, index:index, keyEvent:keyEvent}">

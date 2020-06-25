@@ -128,9 +128,12 @@ export class MapTocUIComponent implements OnInit {
     if (keyPress === 'Control') {
       // select all or turn off all
       layerid = layers.map(e => e.id);
-      layers.forEach(e => {
-        e.checked = visible;
-      });
+      setTimeout(() => {
+        layers.forEach(e => {
+          e.checked = visible;
+        });
+      }, 0);
+
     } else if (keyPress === 'Alt') {
       // close all but select
       // turn off all other layers
