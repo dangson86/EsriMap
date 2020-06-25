@@ -11,6 +11,7 @@ export class MapInitModel {
 }
 
 export class LayerSettingChangeModel {
+    [key: string]: any;
     mapUrl: string;
     layerid: number[];
     visible: boolean;

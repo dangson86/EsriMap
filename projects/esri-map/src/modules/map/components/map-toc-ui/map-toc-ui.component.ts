@@ -103,8 +103,11 @@ export class MapTocUIComponent implements OnInit {
       }
     })
   );
-  readonly layerInfosTree$ = this.layerInfos$.pipe(map(list => this.buildTree(list)));
+  readonly layerInfosTree$ = this.layerInfos$.pipe(
+    map(list => this.buildTree(list))
+  );
 
+  @Input() tocIndex = 0;
   @Input() set mapScale(input: number) {
     this.mapScale$.next(input);
   }
@@ -119,11 +122,43 @@ export class MapTocUIComponent implements OnInit {
 
   ngOnInit(): void {
   }
-  onLayerSelectChange(event: MatCheckboxChange, layer: apiModel.LayerInfo, mapInfo: LooseObject) {
+  onLayerSelectChange(event: MatCheckboxChange, layer: LayerInfoTree, mapInfo: LooseObject, layers: LayerInfoTree[], keyPress: string) {
+    let visible = event.checked;
+    let layerid = [layer.id];
+    if (keyPress === 'Control') {
+      // select all or turn off all
+      layerid = layers.map(e => e.id);
+      layers.forEach(e => {
+        e.checked = visible;
+      });
+    } else if (keyPress === 'Alt') {
+      // close all but select
+      // turn off all other layers
+      setTimeout(() => {
+        const offLayers = layers.map(e => e.id).filter(e => e !== layer.id);
+        layers.forEach(e => {
+          if (offLayers.indexOf(e.id) !== -1) {
+            e.checked = false;
+          }
+        });
+
+        this.layerVisibleChange.emit({
+          mapUrl: this.mapUrl$.value,
+          visible: false,
+          layerid: offLayers,
+        });
+        // set layer check
+        layer.checked = true;
+      }, 0);
+
+      // if alt is press visible is alway true
+      visible = true;
+    }
+
     this.layerVisibleChange.emit({
       mapUrl: this.mapUrl$.value,
-      visible: event.checked,
-      layerid: [layer.id]
+      visible,
+      layerid,
     });
   }
   toggleLabel(infoDetail: LayerInfoDetail) {

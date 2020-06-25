@@ -16,12 +16,14 @@
 
 </div>
 
-<ng-template #layerTemplate let-layer="layer" let-mapInfo="mapInfo">
+<ng-template #layerTemplate let-layer="layer" let-layers="layers" let-index="index" let-keyEvent="keyEvent"
+    let-mapInfo="mapInfo">
     <div class="layerDiv">
-        <mat-checkbox (change)="onLayerSelectChange($event, layer, mapInfo)" [(ngModel)]="layer.checked">
-            {{layer?.name}}
+        <mat-checkbox
+            (change)="onLayerSelectChange($event, layer, mapInfo,layers, keyEvent.isPress?keyEvent.selectedKey:null)"
+            [(ngModel)]="layer.checked">
         </mat-checkbox>
-
+        <span>{{layer?.name}}</span>
         <ng-container *ngIf="layer.layerInfo$ | async as infoDetail">
             <span class="layerFunctions">
                 <button class="functionBtn toggleable" [class.active]="infoDetail.showLabel" title="toggle label"
@@ -43,9 +45,14 @@
 </ng-template>
 
 <ng-template #groupLayerTemplate let-layers="layers" let-mapInfo="mapInfo">
-    <ng-container *ngFor="let layer of layers">
-        <ng-container *ngTemplateOutlet="layerTemplate; context:{layer:layer, mapInfo:mapInfo}"></ng-container>
-    </ng-container>
+    <div #keyEvent=keyEventDirective keyevent [keys]="['Alt','Control']" [tabindex]="tocIndex">
+        <ng-container *ngFor="let layer of layers; let index=index">
+            <ng-container
+                *ngTemplateOutlet="layerTemplate; context:{layer:layer, layers:layers, mapInfo:mapInfo, index:index, keyEvent:keyEvent}">
+            </ng-container>
+        </ng-container>
+    </div>
+
 </ng-template>
 
 <ng-template #layerLegend let-infoDetail="infoDetail">

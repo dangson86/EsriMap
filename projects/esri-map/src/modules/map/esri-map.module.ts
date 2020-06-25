@@ -12,6 +12,7 @@ import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { CommonDirectiveModule } from '../share/common-directive.module';
 
 
 
@@ -24,6 +25,7 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
   ],
   imports: [
     CommonModule,
+    CommonDirectiveModule,
     MatCheckboxModule,
     MatButtonModule,
     MatIconModule,

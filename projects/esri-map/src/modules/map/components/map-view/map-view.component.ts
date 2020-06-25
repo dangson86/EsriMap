@@ -77,7 +77,7 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
 
 
   readonly uiConfig = {
-    showTocPannel: false,
+    showTocPannel: true,
     showBottomPannel: false,
     bottomPanel: {
       height: 25,
