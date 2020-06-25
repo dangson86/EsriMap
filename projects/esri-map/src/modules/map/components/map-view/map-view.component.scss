@@ -65,6 +65,17 @@
     position: absolute;
 }
 
+.toggle-tools{
+    .activedTool{
+        border-left: 4px solid #0088ff;
+        
+        button{
+            color: #0088ff;
+        }
+    }
+}
+
+
 .bottom-pannel-wrapper{
     width: 100%;
     position: relative;

@@ -7,7 +7,19 @@ import { MapInitModel, LayerSettingChangeModel, LayerLabelChangeModel } from '..
 import { MapUrlDirective } from './directives/map-url.directive';
 import { MapTocDirective } from './directives/map-toc.directive';
 import esri = __esri; // Esri TypeScript Types
-import { layer } from 'esri/views/3d/support/LayerPerformanceInfo';
+
+declare type availableToolNames = 'identifyTool' | 'zoomIn' | 'zoomOut' | 'unknowTool' | 'noSelectTool';
+interface MapCompUiConfig {
+  showTocPannel: boolean;
+  showBottomPannel: boolean;
+  bottomPanel: {
+    height: number,
+    bottom: number
+  };
+  leftMenuTools: {
+    selectedTool: availableToolNames
+  };
+}
 
 @Component({
   // tslint:disable-next-line: component-selector
@@ -17,8 +29,9 @@ import { layer } from 'esri/views/3d/support/LayerPerformanceInfo';
 })
 export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
   @Input() sceneView = false;
-  @Output() loaded = new EventEmitter<MapInitModel>();
-  @Output() isLoading = new EventEmitter<boolean>();
+  @Output() readonly loaded = new EventEmitter<MapInitModel>();
+  @Output() readonly isLoading = new EventEmitter<boolean>();
+  @Output() readonly toolChange = new EventEmitter<string>();
   @ViewChild('mapView', { static: true }) mapViewElement: ElementRef;
   @ContentChildren(MapUrlDirective) layerUrlList!: QueryList<MapUrlDirective>;
   @ContentChildren(MapTocDirective) tocUrlList!: QueryList<MapTocDirective>;
@@ -76,12 +89,15 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
   mapScale: number;
 
 
-  readonly uiConfig = {
+  readonly uiConfig: MapCompUiConfig = {
     showTocPannel: true,
     showBottomPannel: false,
     bottomPanel: {
       height: 25,
       bottom: -25
+    },
+    leftMenuTools: {
+      selectedTool: 'noSelectTool'
     }
   };
 
@@ -116,6 +132,25 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
 
   ngOnDestroy(): void {
     this.isDestroyed$.next();
+  }
+  activateTool(toolName: availableToolNames) {
+    this.toolChange.emit(toolName);
+    if (this.uiConfig.leftMenuTools.selectedTool !== toolName) {
+      this.uiConfig.leftMenuTools.selectedTool = toolName;
+    } else {
+      this.uiConfig.leftMenuTools.selectedTool = 'noSelectTool';
+    }
+
+    switch (toolName) {
+      case 'identifyTool':
+        break;
+      case 'zoomIn':
+        break;
+      case 'zoomOut':
+        break;
+      default:
+        break;
+    }
   }
   toggleLeftMenu() {
     this.uiConfig.showTocPannel = !this.uiConfig.showTocPannel;
