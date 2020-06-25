@@ -1,7 +1,7 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { MapCommonService } from '../../services/map-common.service';
-import { switchMap, map, tap, filter, shareReplay, take } from 'rxjs/operators';
-import { of, Observable, BehaviorSubject, ReplaySubject, Subject } from 'rxjs';
+import { switchMap, map, tap, filter, shareReplay, take, mergeAll, toArray } from 'rxjs/operators';
+import { of, Observable, BehaviorSubject, ReplaySubject, Subject, from } from 'rxjs';
 import * as apiModel from '../../models/api-request.models';
 import esri = __esri; // Esri TypeScript Types
 import { MatCheckboxChange } from '@angular/material/checkbox';
@@ -30,6 +30,7 @@ interface LayerInfoDetail {
   showLabel: boolean;
   identifiable: boolean;
   hasLabels: boolean;
+  hasQuery: boolean;
   id: number;
   description: string;
   displayField: string;
@@ -87,6 +88,8 @@ export class MapTocUIComponent implements OnInit {
                   layerInfo.hasLegends = layerInfo.legends && layerInfo.legends.length > 0;
                   layerInfo.showLabel = layerInfo.hasLabels;
                   layerInfo.identifiable = true; // turn on by default
+                  layerInfo.hasQuery = layerInfo.capabilities.indexOf('Query') > -1;
+
                   if (layerInfo.hasLegends) {
                     layerInfo.legends.forEach(l => {
                       l.base64Image = this.domSanitizer.bypassSecurityTrustResourceUrl(`data:${l.contentType};base64, ${l.imageData}`);
@@ -96,14 +99,12 @@ export class MapTocUIComponent implements OnInit {
                 return layerInfo;
               }))
             ),
-            // tap(e => {
-            //   console.log(e.drawingInfo.labelingInfo);
-            // }),
             shareReplay(1)
           );
         });
       }
-    })
+    }),
+    shareReplay()
   );
   readonly layerInfosTree$ = this.layerInfos$.pipe(
     map(list => this.buildTree(list))
@@ -116,6 +117,9 @@ export class MapTocUIComponent implements OnInit {
 
   @Input() set url(input: string) {
     this.mapUrl$.next(input);
+  }
+  get url() {
+    return this.mapUrl$.value;
   }
   @Input() isMapLoading: boolean;
   @Output() layerVisibleChange = new EventEmitter<LayerSettingChangeModel>();
@@ -175,6 +179,18 @@ export class MapTocUIComponent implements OnInit {
     });
   }
 
+  getIdentifiableLayerIds(): Observable<number[]> {
+    return this.layerInfos$.pipe(
+      take(1),
+      switchMap(list => from(list)),
+      switchMap(layer => layer.layerInfo$.pipe(
+        take(1),
+        filter(layerInfo => layerInfo.identifiable && layerInfo.hasQuery && layer.checked),
+        map(layerInfo => layerInfo.id),
+      )),
+      toArray(),
+    );
+  }
 
   private buildTree(list: apiModel.LayerInfo[]): LayerInfoTree[] {
     const result: LayerInfoTree[] = [];

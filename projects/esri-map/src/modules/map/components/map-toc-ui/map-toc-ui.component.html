@@ -31,7 +31,7 @@
                     <mat-icon class="functionBtn">label</mat-icon>
                 </button>
                 <button class="functionBtn toggleable" [class.active]="infoDetail.identifiable"
-                    title="toggle layer identify tool" mat-icon-button *ngIf="layer.checked"
+                    title="toggle layer identify tool" mat-icon-button *ngIf="layer.checked && infoDetail.hasQuery"
                     (click)="infoDetail.identifiable = !infoDetail.identifiable">
                     <mat-icon class="functionBtn">not_listed_location</mat-icon>
                 </button>

@@ -8,6 +8,12 @@ export interface LooseObject {
 export class MapInitModel {
     map: esri.Map;
     mapView: esri.MapView | esri.SceneView;
+    events: {
+        click?: esri.Handle;
+    } = {};
+    mapTools: {
+        draw?: esri.Draw;
+    } = {};
 }
 
 export class LayerSettingChangeModel {

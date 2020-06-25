@@ -1,12 +1,13 @@
-import { Component, OnInit, ViewChild, ElementRef, OnDestroy, Output, EventEmitter, ContentChildren, AfterContentInit, QueryList, Input } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, OnDestroy, Output, EventEmitter, ContentChildren, AfterContentInit, QueryList, Input, ViewChildren } from '@angular/core';
 import { from, Subject, Observable, of, fromEvent, merge } from 'rxjs';
 import { loadCss, loadScript } from 'esri-loader';
-import { switchMap, tap, takeUntil, shareReplay, map } from 'rxjs/operators';
+import { switchMap, tap, takeUntil, shareReplay, map, mergeMap, filter } from 'rxjs/operators';
 import { MapCommonService } from '../../services/map-common.service';
 import { MapInitModel, LayerSettingChangeModel, LayerLabelChangeModel } from '../../models/map-model.model';
 import { MapUrlDirective } from './directives/map-url.directive';
 import { MapTocDirective } from './directives/map-toc.directive';
 import esri = __esri; // Esri TypeScript Types
+import { MapTocUIComponent } from '../map-toc-ui/map-toc-ui.component';
 
 declare type availableToolNames = 'identifyTool' | 'zoomIn' | 'zoomOut' | 'unknowTool' | 'noSelectTool';
 interface MapCompUiConfig {
@@ -31,26 +32,27 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
   @Input() sceneView = false;
   @Output() readonly loaded = new EventEmitter<MapInitModel>();
   @Output() readonly isLoading = new EventEmitter<boolean>();
-  @Output() readonly toolChange = new EventEmitter<string>();
+  @Output() readonly toolChange = new EventEmitter<availableToolNames>();
+  @Output() readonly mapClick = new EventEmitter<esri.geometry.Point>();
   @ViewChild('mapView', { static: true }) mapViewElement: ElementRef;
   @ContentChildren(MapUrlDirective) layerUrlList!: QueryList<MapUrlDirective>;
   @ContentChildren(MapTocDirective) tocUrlList!: QueryList<MapTocDirective>;
 
-  private readonly loadEsriBaseScript$ = from(loadScript({
-    url: 'https://js.arcgis.com/4.15/'
-  }).then(e => {
-    loadCss('https://js.arcgis.com/4.15/esri/themes/light/main.css');
-  }));
+  @ViewChildren(MapTocUIComponent) tocComponents: QueryList<MapTocUIComponent>;
+
   private readonly isDestroyed$ = new Subject<any>();
   private mapInitModel: MapInitModel;
 
-  private readonly initMap$: Observable<MapInitModel> = this.loadEsriBaseScript$.pipe(
+  private readonly initMap$: Observable<MapInitModel> = this.mapCommonService.loadEsriBaseScript$.pipe(
     switchMap(e => this.mapCommonService.loadModules('esri/Map', 'esri/views/MapView', 'esri/views/SceneView', 'esri/core/watchUtils')),
     switchMap(([Map, MapView, SceneView, watchUtils]) => {
       this.clearStaticText();
       const newMap: esri.Map = new Map({
         basemap: 'topo-vector'
       });
+
+      this.sceneView = false;
+
       this.mapInitModel = new MapInitModel();
       this.isLoading.emit(true);
       if (this.sceneView) {
@@ -71,6 +73,7 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
         });
         this.mapInitModel.mapView = view;
       }
+
       this.mapInitModel.mapView.watch('scale', e => {
         this.mapScale = e;
       });
@@ -134,15 +137,37 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
     this.isDestroyed$.next();
   }
   activateTool(toolName: availableToolNames) {
-    this.toolChange.emit(toolName);
+
     if (this.uiConfig.leftMenuTools.selectedTool !== toolName) {
       this.uiConfig.leftMenuTools.selectedTool = toolName;
     } else {
       this.uiConfig.leftMenuTools.selectedTool = 'noSelectTool';
     }
-
-    switch (toolName) {
+    this.toolChange.emit(this.uiConfig.leftMenuTools.selectedTool);
+    switch (this.uiConfig.leftMenuTools.selectedTool) {
       case 'identifyTool':
+        this.drawIdentifyRectangle().pipe(
+          tap(e => {
+            this.isLoading.next(true);
+          }),
+          switchMap(geometry => from(this.tocComponents.map(e => e)).pipe(
+            mergeMap(toc => {
+              const view = this.mapInitModel.mapView;
+              return toc.getIdentifiableLayerIds().pipe(
+                switchMap(layerIds => {
+                  if (layerIds && layerIds.length > 0) {
+                    return this.mapCommonService.executeIdentifyTask(toc.url, view.width, view.height, layerIds, view.extent, geometry);
+                  }
+                  return of([]);
+                })
+              );
+            })
+          )),
+          tap(e => {
+            this.clearSelectedTool();
+            this.isLoading.next(false);
+          }),
+        ).subscribe(e => console.log(e));
         break;
       case 'zoomIn':
         break;
@@ -230,9 +255,91 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
     return [];
   }
   private initMap() {
-    this.initMap$.subscribe();
+    this.initMap$.pipe(
+      switchMap(mapModel => this.mapCommonService.loadModules('esri/views/draw/Draw').pipe(
+        tap(([Draw]) => {
+          const draw: esri.Draw = new Draw({
+            view: mapModel.mapView
+          });
+          mapModel.mapTools.draw = draw;
+        })
+      )
+      )).subscribe();
+  }
+  // private attachClickEvent() {
+  //   if (this.mapInitModel.events.click == null) {
+  //     this.mapInitModel.events.click = this.mapInitModel.mapView.on('click', e => {
+  //       this.mapClick.emit(e.mapPoint);
+  //     });
+  //   }
+  // }
+  private drawIdentifyRectangle(): Observable<esri.Geometry> {
+    return this.initMap$.pipe(
+      switchMap(mapModel => this.mapCommonService.loadModules('esri/geometry/Polygon', 'esri/Graphic').pipe(
+        switchMap(([Polygon, Graphic]) => {
+          const view = mapModel.mapView;
+          view.focus();
+          const drawAction = mapModel.mapTools.draw.create('rectangle') as esri.SegmentDrawAction;
+          const sp = mapModel.mapView.spatialReference;
+          const graphics = mapModel.mapView.graphics;
+          // fires when the pointer moves
+
+          const customSymbol = {
+            type: 'simple-fill',  // autocasts as new SimpleFillSymbol()
+            // color: [51, 51, 204, 0.9],
+            style: 'none',
+            outline: {  // autocasts as new SimpleLineSymbol()
+              color: '#ff4081',
+              width: 1,
+              style: 'short-dash'
+            }
+          };
+
+          drawAction.on('cursor-update', (evt) => {
+            const polygon: esri.Polygon = new Polygon({
+              rings: evt.vertices,
+              spatialReference: sp
+            });
+            graphics.removeAll();
+
+            const graphic: esri.Graphic = new Graphic({
+              geometry: polygon.extent,
+              symbol: customSymbol,
+              attributes: null
+            });
+            graphics.add(graphic);
+          });
+
+          const result = new Subject<esri.Extent>();
+          // fires when the drawing is completed
+          drawAction.on('draw-complete', (evt) => {
+            graphics.removeAll();
+            const polygon: esri.Polygon = new Polygon({
+              rings: evt.vertices,
+              spatialReference: sp
+            });
+
+            result.next(polygon.extent);
+            result.complete();
+          });
+
+          return result;
+        })
+      )),
+    );
   }
 
+  // private measureLine(vertices) {
+  //   this.mapInitModel.mapView.graphics.removeAll();
+
+  //   var line = createLine(vertices);
+  //   var lineLength = geometryEngine.geodesicLength(line, "miles");
+  //   var graphic = createGraphic(line);
+  //   view.graphics.add(graphic);
+  // }
+  private clearSelectedTool() {
+    this.uiConfig.leftMenuTools.selectedTool = 'noSelectTool';
+  }
   private clearStaticText() {
     // clear static text
     this.mapViewElement.nativeElement.textContent = null;
