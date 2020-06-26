@@ -14,7 +14,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { CommonDirectiveModule } from '../share/common-directive.module';
 import { MatTabsModule } from '@angular/material/tabs';
-
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 
 @NgModule({
@@ -34,7 +34,8 @@ import { MatTabsModule } from '@angular/material/tabs';
     FormsModule,
     MatExpansionModule,
     MatButtonToggleModule,
-    MatTabsModule
+    MatTabsModule,
+    MatProgressSpinnerModule
   ],
   providers: [
     MapCommonService

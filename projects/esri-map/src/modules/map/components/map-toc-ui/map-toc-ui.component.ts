@@ -1,6 +1,6 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { MapCommonService } from '../../services/map-common.service';
-import { switchMap, map, tap, filter, shareReplay, take, mergeAll, toArray, mergeMap, first, finalize } from 'rxjs/operators';
+import { switchMap, map, tap, filter, shareReplay, take, mergeAll, toArray, mergeMap, first, finalize, delay } from 'rxjs/operators';
 import { of, Observable, BehaviorSubject, ReplaySubject, Subject, from } from 'rxjs';
 import * as apiModel from '../../models/api-request.models';
 import esri = __esri; // Esri TypeScript Types
@@ -52,6 +52,7 @@ interface LayerInfoDetail {
   styleUrls: ['./map-toc-ui.component.scss']
 })
 export class MapTocUIComponent implements OnInit {
+  isloading = false;
   readonly mapUrl$ = new BehaviorSubject<string>(null);
   readonly mapScale$ = new Subject<number>();
   readonly mapInfo$ = this.mapUrl$.pipe(
@@ -70,16 +71,20 @@ export class MapTocUIComponent implements OnInit {
     // tap(e => {
     //   console.log(e);
     // }),
-    shareReplay(1)
+    shareReplay(1),
   );
   readonly layerInfos$ = this.mapInfo$.pipe(
     filter(e => e != null),
     map(e => e.layers as LayerInfoTree[]),
     tap(list => {
+      this.isloading = true;
       if (list) {
         list.forEach(layer => {
           layer.fullUrl = `${this.mapUrl$.value}/${layer.id}`;
           layer.layerInfo$ = this.mapCommonService.getUrljsonInfo(layer.fullUrl).pipe(
+            tap(() => {
+              this.isloading = true;
+            }),
             switchMap((layerInfo: LayerInfoDetail) => this.mapLegends$.pipe(
               take(1),
               map(mapLegends => {
@@ -100,10 +105,16 @@ export class MapTocUIComponent implements OnInit {
                 return layerInfo;
               }),
             )),
+            tap(() => {
+              this.isloading = false;
+            }),
             shareReplay(1)
           );
         });
       }
+    }),
+    tap(e => {
+      this.isloading = false;
     }),
     shareReplay()
   );

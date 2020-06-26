@@ -1,9 +1,9 @@
 import { Component, OnInit, ViewChild, ElementRef, OnDestroy, Output, EventEmitter, ContentChildren, AfterContentInit, QueryList, Input, ViewChildren } from '@angular/core';
 import { from, Subject, Observable, of, fromEvent, merge } from 'rxjs';
 import { loadCss, loadScript } from 'esri-loader';
-import { switchMap, tap, takeUntil, shareReplay, map, mergeMap, filter, toArray, catchError } from 'rxjs/operators';
+import { switchMap, tap, takeUntil, shareReplay, map, mergeMap, filter, toArray, catchError, defaultIfEmpty } from 'rxjs/operators';
 import { MapCommonService } from '../../services/map-common.service';
-import { MapInitModel, LayerSettingChangeModel, LayerLabelChangeModel } from '../../models/map-model.model';
+import { MapInitModel, LayerSettingChangeModel, LayerLabelChangeModel, ExecuteIdentifyTaskResult } from '../../models/map-model.model';
 import { MapUrlDirective } from './directives/map-url.directive';
 import { MapTocDirective } from './directives/map-toc.directive';
 import esri = __esri; // Esri TypeScript Types
@@ -34,6 +34,8 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
   @Output() readonly isLoading = new EventEmitter<boolean>();
   @Output() readonly toolChange = new EventEmitter<availableToolNames>();
   @Output() readonly mapClick = new EventEmitter<esri.geometry.Point>();
+  @Output() readonly identifyReturn = new EventEmitter<ExecuteIdentifyTaskResult[]>();
+
   @ViewChild('mapView', { static: true }) mapViewElement: ElementRef;
   @ContentChildren(MapUrlDirective) layerUrlList!: QueryList<MapUrlDirective>;
   @ContentChildren(MapTocDirective) tocUrlList!: QueryList<MapTocDirective>;
@@ -51,7 +53,7 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
         basemap: 'topo-vector'
       });
 
-      this.sceneView = false;
+      // this.sceneView = false;
 
       this.mapInitModel = new MapInitModel();
       this.isLoading.emit(true);
@@ -108,6 +110,7 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
 
   private readonly hostMouseMove$: Observable<MouseEvent> = fromEvent(this.elRef.nativeElement, 'mousemove');
   private readonly hostMouseUp$ = fromEvent(this.elRef.nativeElement, 'mouseup');
+  identifyResults: ExecuteIdentifyTaskResult[];
   constructor(private mapCommonService: MapCommonService, private elRef: ElementRef) {
 
   }
@@ -161,19 +164,27 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
                     return this.mapCommonService.executeIdentifyTask(toc.url, view.width, view.height, layerIds, view.extent, geometry).pipe(
                       catchError(error => {
                         console.error(error);
-                        return of([]);
+                        return of<ExecuteIdentifyTaskResult>(null);
                       })
                     );
                   }
-                  return of([]);
+                  return of<ExecuteIdentifyTaskResult>(null);
                 })
               );
             }),
+            // defaultIfEmpty(null),
+            // filter(e => e != null),
             toArray()
           )),
           tap(e => {
             this.clearSelectedTool();
             this.isLoading.next(false);
+            if (e && e.length > 0) {
+              this.uiConfig.showBottomPannel = true;
+              this.identifyResults = e;
+            }
+
+            this.identifyReturn.emit(e);
           }),
         ).subscribe(e => {
           console.log(e);

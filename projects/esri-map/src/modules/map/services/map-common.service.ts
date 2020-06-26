@@ -3,7 +3,7 @@ import { Observable, from, of } from 'rxjs';
 import { mergeMap, switchMap, map, shareReplay, finalize } from 'rxjs/operators';
 import { loadModules, loadScript, loadCss } from 'esri-loader';
 import esri = __esri; // Esri TypeScript Types
-import { LooseObject } from '../models/map-model.model';
+import { LooseObject, ExecuteIdentifyTaskResult } from '../models/map-model.model';
 
 @Injectable()
 export class MapCommonService {
@@ -24,7 +24,7 @@ export class MapCommonService {
         );
     }
 
-    executeIdentifyTask(url: string, viewWidth: number, viewHeight: number, layerIds: number[], mapExtent: esri.Extent, geometry: esri.Geometry, tolerance = 3, returnGeometry = false) {
+    executeIdentifyTask(url: string, viewWidth: number, viewHeight: number, layerIds: number[], mapExtent: esri.Extent, geometry: esri.Geometry, tolerance = 3, returnGeometry = false): Observable<ExecuteIdentifyTaskResult> {
         return this.loadModules('esri/tasks/IdentifyTask', 'esri/tasks/support/IdentifyParameters').pipe(
             switchMap(([IdentifyTask, IdentifyParameters]) => {
                 const identifyTask: esri.IdentifyTask = new IdentifyTask(url);
@@ -37,11 +37,18 @@ export class MapCommonService {
                 params.mapExtent = mapExtent;
                 params.geometry = geometry;
                 params.layerOption = 'visible';
-                return from(identifyTask.execute(params)).pipe(map(e => ({
-                    url,
-                    layerIds,
-                    results: e.results as esri.IdentifyResult[]
-                })));
+                return from(identifyTask.execute(params)).pipe(
+                    map(e => {
+                        const results = e.results as esri.IdentifyResult[];
+                        const groupByResult: { [key: string]: esri.IdentifyResult[] } = results.reduce((acc, curr) => (acc[curr.layerName] = [...acc[curr.layerName] || [], curr]) && acc, {});
+
+                        return {
+                            url,
+                            layerIds,
+                            results: groupByResult
+                        };
+                    }),
+                );
             })
         );
     }

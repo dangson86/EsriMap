@@ -10,6 +10,10 @@
             <ng-container *ngIf="layerInfosTree$ | async as layerInfosTree">
                 <ng-container *ngTemplateOutlet="groupLayerTemplate; context:{layers:layerInfosTree, mapInfo:mapInfo}">
                 </ng-container>
+                <div class="loadingIcon" *ngIf="isloading">
+                    <mat-spinner></mat-spinner>
+                </div>
+
             </ng-container>
         </mat-expansion-panel>
     </mat-accordion>
@@ -27,7 +31,7 @@
         <ng-container *ngIf="layer.layerInfo$ | async as infoDetail">
             <span class="layerFunctions">
                 <button class="functionBtn toggleable" [class.active]="infoDetail.showLabel" title="toggle label"
-                    mat-icon-button *ngIf="infoDetail.hasLabels" (click)="toggleLabel(infoDetail)">
+                    mat-icon-button *ngIf="layer.checked && infoDetail.hasLabels" (click)="toggleLabel(infoDetail)">
                     <mat-icon class="functionBtn">label</mat-icon>
                 </button>
                 <button class="functionBtn toggleable" [class.active]="infoDetail.identifiable"

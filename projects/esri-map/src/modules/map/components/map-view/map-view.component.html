@@ -68,21 +68,12 @@
 <div class="bottom-pannel-wrapper" [class.hideBottomPanel]="!uiConfig.showBottomPannel"
     [ngStyle]="{'height.px': uiConfig.bottomPanel.height}">
     <div class="panel-content" *ngIf="uiConfig.showBottomPannel">
-        <table>
-            <tr>
-                <td>dafdsf</td>
-                <td>dafdsf</td>
-                <td>dafdsf</td>
-                <td>dafdsf</td>
-                <td>dafdsf</td>
+        <table *ngFor="let map of identifyResults">
+            <tr *ngFor="let item of map.results | keyvalue">
+                <td>{{item.key}}</td>
+                <!-- <td>{{item.value|json}}</td> -->
             </tr>
-            <tr>
-                <td>dsfsdgg</td>
-                <td>dsfsdgg</td>
-                <td>dsfsdgg</td>
-                <td>dsfsdgg</td>
-                <td>dsfsdgg</td>
-            </tr>
+
         </table>
     </div>
     <div class="expand-bar">

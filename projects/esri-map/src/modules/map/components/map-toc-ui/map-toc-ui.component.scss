@@ -44,3 +44,10 @@
 .expansionPanel{
     background-color: #f1f1f1;
 }
+
+.loadingIcon{
+    position: absolute;
+    top: 50%;
+    left:50%;
+    transform: translate(-50%, -50%);
+}
