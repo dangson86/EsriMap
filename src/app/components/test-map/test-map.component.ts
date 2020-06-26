@@ -6,7 +6,7 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./test-map.component.scss']
 })
 export class TestMapComponent implements OnInit {
-  url = 'https://epic.ensiteusa.com/arcgis/rest/services/DS/ParcelTestData/MapServer';
+  url = 'https://epic.ensiteusa.com/arcgis/rest/services/DS/LearnOptiRoute/MapServer';
   constructor() { }
 
   ngOnInit(): void {

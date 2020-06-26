@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, from, of } from 'rxjs';
-import { mergeMap, switchMap, map, shareReplay } from 'rxjs/operators';
+import { mergeMap, switchMap, map, shareReplay, finalize } from 'rxjs/operators';
 import { loadModules, loadScript, loadCss } from 'esri-loader';
 import esri = __esri; // Esri TypeScript Types
 import { LooseObject } from '../models/map-model.model';
@@ -20,7 +20,7 @@ export class MapCommonService {
 
     getUrljsonInfo(url: string) {
         return this.esriRequest(url, { query: { f: 'json' }, responseType: 'json' }).pipe(
-            map(e => e.data)
+            map(e => e.data),
         );
     }
 
@@ -37,7 +37,11 @@ export class MapCommonService {
                 params.mapExtent = mapExtent;
                 params.geometry = geometry;
                 params.layerOption = 'visible';
-                return from(identifyTask.execute(params));
+                return from(identifyTask.execute(params)).pipe(map(e => ({
+                    url,
+                    layerIds,
+                    results: e.results as esri.IdentifyResult[]
+                })));
             })
         );
     }

@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewChild, ElementRef, OnDestroy, Output, EventEmitter, ContentChildren, AfterContentInit, QueryList, Input, ViewChildren } from '@angular/core';
 import { from, Subject, Observable, of, fromEvent, merge } from 'rxjs';
 import { loadCss, loadScript } from 'esri-loader';
-import { switchMap, tap, takeUntil, shareReplay, map, mergeMap, filter } from 'rxjs/operators';
+import { switchMap, tap, takeUntil, shareReplay, map, mergeMap, filter, toArray, catchError } from 'rxjs/operators';
 import { MapCommonService } from '../../services/map-common.service';
 import { MapInitModel, LayerSettingChangeModel, LayerLabelChangeModel } from '../../models/map-model.model';
 import { MapUrlDirective } from './directives/map-url.directive';
@@ -56,28 +56,30 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
       this.mapInitModel = new MapInitModel();
       this.isLoading.emit(true);
       if (this.sceneView) {
-        const view: esri.SceneView = new SceneView({
+        const tempView: esri.SceneView = new SceneView({
           container: this.mapViewElement.nativeElement,
           map: newMap,
           center: [-95.437389, 29.763206],
           zoom: 4
         });
-        this.mapInitModel.mapView = view;
-        view.ui.move(['zoom', 'navigation-toggle', 'compass'], 'top-right');
-      } else {
-        const view: esri.MapView = new MapView({
-          container: this.mapViewElement.nativeElement,
-          map: newMap,
-          center: [-95.437389, 29.763206],
-          zoom: 4
-        });
-        this.mapInitModel.mapView = view;
-      }
+        this.mapInitModel.mapView = tempView;
 
-      this.mapInitModel.mapView.watch('scale', e => {
+      } else {
+        const tempView: esri.MapView = new MapView({
+          container: this.mapViewElement.nativeElement,
+          map: newMap,
+          center: [-95.437389, 29.763206],
+          zoom: 4
+        });
+        this.mapInitModel.mapView = tempView;
+      }
+      const view = this.mapInitModel.mapView;
+      view.ui.move(['zoom', 'navigation-toggle', 'compass'], 'top-right');
+
+      view.watch('scale', e => {
         this.mapScale = e;
       });
-      this.mapInitModel.mapView.watch('updating', (e: boolean) => {
+      view.watch('updating', (e: boolean) => {
         this.isLoading.emit(e);
       });
       this.mapInitModel.map = newMap;
@@ -154,20 +156,29 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
             mergeMap(toc => {
               const view = this.mapInitModel.mapView;
               return toc.getIdentifiableLayerIds().pipe(
-                switchMap(layerIds => {
+                mergeMap(layerIds => {
                   if (layerIds && layerIds.length > 0) {
-                    return this.mapCommonService.executeIdentifyTask(toc.url, view.width, view.height, layerIds, view.extent, geometry);
+                    return this.mapCommonService.executeIdentifyTask(toc.url, view.width, view.height, layerIds, view.extent, geometry).pipe(
+                      catchError(error => {
+                        console.error(error);
+                        return of([]);
+                      })
+                    );
                   }
                   return of([]);
                 })
               );
-            })
+            }),
+            toArray()
           )),
           tap(e => {
             this.clearSelectedTool();
             this.isLoading.next(false);
           }),
-        ).subscribe(e => console.log(e));
+        ).subscribe(e => {
+          console.log(e);
+
+        });
         break;
       case 'zoomIn':
         break;

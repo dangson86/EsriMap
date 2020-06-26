@@ -8,12 +8,25 @@
 <div class="mapAndToc">
     <div #mapView class="mapView">map not init</div>
     <div class="toc-wrapper" [class.showTocPanel]="uiConfig.showTocPannel">
-        <div class="tocDiv">
-            <map-toc-ui class="toc" *ngFor="let toc of tocUrlList; let i=index;" [url]="toc.url" [mapScale]="mapScale"
-                [tocIndex]="i" (layerVisibleChange)="onLayerSettingChange($event)"
-                (layerLabelChange)="onLayerLabelChange($event)">
-            </map-toc-ui>
-        </div>
+        <mat-tab-group class="tab-group">
+            <mat-tab label="TOC">
+                <div class="tabDiv tocDiv">
+                    <map-toc-ui class="toc" *ngFor="let toc of tocUrlList; let i=index;" [url]="toc.url"
+                        [mapScale]="mapScale" [tocIndex]="i" (layerVisibleChange)="onLayerSettingChange($event)"
+                        (layerLabelChange)="onLayerLabelChange($event)">
+                    </map-toc-ui>
+                </div>
+            </mat-tab>
+            <mat-tab label="Base Map">
+                <div class="tabDiv">Base map</div>
+            </mat-tab>
+            <mat-tab label="KMZ">
+                <div class="tabDiv">
+                    KMZ
+                </div>
+            </mat-tab>
+        </mat-tab-group>
+
         <div class="toc-menu">
             <div class="toc-func">
                 <button class="toc-btn" mat-icon-button color="primary" (click)="toggleLeftMenu()"

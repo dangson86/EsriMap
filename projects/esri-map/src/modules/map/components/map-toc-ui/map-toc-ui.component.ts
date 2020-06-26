@@ -1,6 +1,6 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { MapCommonService } from '../../services/map-common.service';
-import { switchMap, map, tap, filter, shareReplay, take, mergeAll, toArray } from 'rxjs/operators';
+import { switchMap, map, tap, filter, shareReplay, take, mergeAll, toArray, mergeMap, first, finalize } from 'rxjs/operators';
 import { of, Observable, BehaviorSubject, ReplaySubject, Subject, from } from 'rxjs';
 import * as apiModel from '../../models/api-request.models';
 import esri = __esri; // Esri TypeScript Types
@@ -77,10 +77,11 @@ export class MapTocUIComponent implements OnInit {
     map(e => e.layers as LayerInfoTree[]),
     tap(list => {
       if (list) {
-        list.forEach(item => {
-          item.fullUrl = `${this.mapUrl$.value}/${item.id}`;
-          item.layerInfo$ = this.mapCommonService.getUrljsonInfo(item.fullUrl).pipe(
+        list.forEach(layer => {
+          layer.fullUrl = `${this.mapUrl$.value}/${layer.id}`;
+          layer.layerInfo$ = this.mapCommonService.getUrljsonInfo(layer.fullUrl).pipe(
             switchMap((layerInfo: LayerInfoDetail) => this.mapLegends$.pipe(
+              take(1),
               map(mapLegends => {
                 if (mapLegends) {
                   const temp = mapLegends.find(e => e.layerId === layerInfo.id);
@@ -97,8 +98,8 @@ export class MapTocUIComponent implements OnInit {
                   }
                 }
                 return layerInfo;
-              }))
-            ),
+              }),
+            )),
             shareReplay(1)
           );
         });
@@ -182,13 +183,14 @@ export class MapTocUIComponent implements OnInit {
   getIdentifiableLayerIds(): Observable<number[]> {
     return this.layerInfos$.pipe(
       take(1),
-      switchMap(list => from(list)),
-      switchMap(layer => layer.layerInfo$.pipe(
-        take(1),
-        filter(layerInfo => layerInfo.identifiable && layerInfo.hasQuery && layer.checked),
-        map(layerInfo => layerInfo.id),
+      switchMap(layers => from(layers).pipe(
+        map(layer => layer.layerInfo$.pipe(
+          filter(layerInfo => layerInfo.identifiable && layerInfo.hasQuery && layer.checked),
+          map(layerInfo => layerInfo.id),
+        ))
       )),
-      toArray(),
+      mergeAll(),
+      toArray()
     );
   }
 

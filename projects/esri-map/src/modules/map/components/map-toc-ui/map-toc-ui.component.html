@@ -1,7 +1,7 @@
 <div class="mapInfoDiv" *ngIf="mapInfo$ | async as mapInfo">
     <ng-container *ngIf="mapLegends$|async"></ng-container>
     <mat-accordion>
-        <mat-expansion-panel expanded="true">
+        <mat-expansion-panel expanded="true" class="expansionPanel">
             <mat-expansion-panel-header>
                 <mat-panel-title>
                     <label title="Map Name" class="mapName">{{mapInfo?.mapName}}</label>

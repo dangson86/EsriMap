@@ -13,6 +13,7 @@ import { FormsModule } from '@angular/forms';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { CommonDirectiveModule } from '../share/common-directive.module';
+import { MatTabsModule } from '@angular/material/tabs';
 
 
 
@@ -32,7 +33,8 @@ import { CommonDirectiveModule } from '../share/common-directive.module';
     MatInputModule,
     FormsModule,
     MatExpansionModule,
-    MatButtonToggleModule
+    MatButtonToggleModule,
+    MatTabsModule
   ],
   providers: [
     MapCommonService
