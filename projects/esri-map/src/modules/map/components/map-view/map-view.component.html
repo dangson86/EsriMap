@@ -7,6 +7,8 @@
 
 <div class="mapAndToc">
     <div #mapView class="mapView">map not init</div>
+    <map-image-layer *ngFor="let input of layerUrlList" [url]="input.url" [id]="input.id" [zoomToOnAdd]="true">
+    </map-image-layer>
     <div class="toc-wrapper" [class.showTocPanel]="uiConfig.showTocPannel">
         <mat-tab-group class="tab-group">
             <mat-tab label="TOC">

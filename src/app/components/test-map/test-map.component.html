@@ -1,18 +1,44 @@
-<input type="text" [(ngModel)]="url" style="width: 100%;">
-<button (click)="setUrl('https://epic.ensiteusa.com/arcgis/rest/services/DS/ParcelTestData/MapServer')">url1</button>
-<button (click)="setUrl('https://epic.ensiteusa.com/arcgis/rest/services/DS/pipeTallyGpsTest/MapServer')">url2</button>
-<button (click)="setUrl('https://epic.ensiteusa.com/arcgis/rest/services/DS/OptiRouteTest/MapServer')">url4</button>
-<button (click)="setUrl('https://epic.ensiteusa.com/arcgis/rest/services/DS/LearnOptiRoute2/MapServer')">url5</button>
-<button (click)="setUrl('https://epic.ensiteusa.com/arcgis/rest/services/DS/LearnOptiRoute/MapServer')">url6</button>
+<div class="left testDiv">
+    <div>
+        <input type="text" [(ngModel)]="defaultUrl" style="width: 100%;">
+        <button *ngFor="let test of testMaps;let index = index" (click)="setUrl(test.url)">url {{index}}</button>
+
+        <div>
+            <input #mapUrlInput type="text" style="width: 100%;"
+                value="https://epic.ensiteusa.com/arcgis/rest/services/DS/LearnOptiRoute2/MapServer" />
+            <button (click)="addMoreMap(mapUrlInput.value)">add map</button>
+        </div>
 
 
-<div class="test">
+        <div>
+            <label>add preset map</label>
+            <br />
+            <button *ngFor="let testMap of testMaps;let index = index" (click)="addMoreMap(testMap)">add map
+                {{index}}</button>
+
+        </div>
+    </div>
+
+
+    <table>
+        <tr *ngFor="let mapUrl of urls; let index = index">
+            <td>{{mapUrl.id}}</td>
+            <td>
+                <input type="text" [(ngModel)]="mapUrl.url">
+            </td>
+            <td><button (click)="urls.splice(index,1)">delete</button></td>
+        </tr>
+    </table>
+</div>
+
+<div class="right test testDiv">
     <map-view sceneView="true" (loaded)="onmapLoaded($event)" #map>
-        <map-url [id]="'my test'" toc="true" [url]="url"> </map-url>
+        <map-url [id]="'my test default'" toc="true" [url]="defaultUrl"> </map-url>
+        <map-toc [url]="defaultUrl"></map-toc>
 
-        <map-toc [url]="url"></map-toc>
-        <!-- <map-url [id]="'my test 2'" toc="true"
-            [url]="'https://epic.ensiteusa.com/arcgis/rest/services/DS/LearnOptiRoute/MapServer'"> </map-url>
-        <map-toc [url]="'https://epic.ensiteusa.com/arcgis/rest/services/DS/LearnOptiRoute/MapServer'"></map-toc> -->
+        <ng-container *ngFor="let test of urls; let index = index">
+            <map-url [id]="test.id" toc="true" [url]="test.url"> </map-url>
+            <map-toc [url]="test.url"></map-toc>
+        </ng-container>
     </map-view>
 </div>

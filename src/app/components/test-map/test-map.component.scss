@@ -1,17 +1,30 @@
 :host{
     width: 100vw;
     height: 100vh;
-    display: block;
+    display: flex;
     position: relative;
     overflow: hidden;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+.left{
+    flex: 0 1 30%;
+}
+.right{
+    flex:1 1 auto;
 }
 .test{
     
-    width: 95vw;
-    height: 90vh;
+    // width: 95vw;
+    // height: 90vh;
     margin: 0 auto;
-    padding: 5px;
-    border: 1px solid black;
-    margin-top: 20px;
 
+}
+
+.testDiv{
+    border: 1px solid black;
+    padding: 10px;
+    height: 100%;
+    box-sizing: border-box;
 }

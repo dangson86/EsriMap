@@ -15,6 +15,7 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { CommonDirectiveModule } from '../share/common-directive.module';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MapImageLayerDirective } from './components/map-view/directives/MapImageLayer.directive';
 
 
 @NgModule({
@@ -22,6 +23,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     MapViewComponent,
     MapUrlDirective,
     MapTocDirective,
+    MapImageLayerDirective,
     MapTocUIComponent
   ],
   imports: [

@@ -1,6 +1,6 @@
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, OnDestroy } from '@angular/core';
 import { MapCommonService } from '../../services/map-common.service';
-import { switchMap, map, tap, filter, shareReplay, take, mergeAll, toArray, mergeMap, first, finalize, delay } from 'rxjs/operators';
+import { switchMap, map, tap, filter, shareReplay, take, mergeAll, toArray, mergeMap, first, finalize, delay, takeUntil } from 'rxjs/operators';
 import { of, Observable, BehaviorSubject, ReplaySubject, Subject, from } from 'rxjs';
 import * as apiModel from '../../models/api-request.models';
 import esri = __esri; // Esri TypeScript Types
@@ -51,8 +51,10 @@ interface LayerInfoDetail {
   templateUrl: './map-toc-ui.component.html',
   styleUrls: ['./map-toc-ui.component.scss']
 })
-export class MapTocUIComponent implements OnInit {
+export class MapTocUIComponent implements OnInit, OnDestroy {
   isloading = false;
+  private readonly isDestroyed$ = new Subject();
+
   readonly mapUrl$ = new BehaviorSubject<string>(null);
   readonly mapScale$ = new Subject<number>();
   readonly mapInfo$ = this.mapUrl$.pipe(
@@ -61,6 +63,7 @@ export class MapTocUIComponent implements OnInit {
     // tap(e => {
     //   console.log(e);
     // }),
+    takeUntil(this.isDestroyed$),
     shareReplay(1)
   );
   readonly mapLegends$ = this.mapUrl$.pipe(
@@ -71,6 +74,7 @@ export class MapTocUIComponent implements OnInit {
     // tap(e => {
     //   console.log(e);
     // }),
+    takeUntil(this.isDestroyed$),
     shareReplay(1),
   );
   readonly layerInfos$ = this.mapInfo$.pipe(
@@ -108,6 +112,7 @@ export class MapTocUIComponent implements OnInit {
             tap(() => {
               this.isloading = false;
             }),
+            takeUntil(this.isDestroyed$),
             shareReplay(1)
           );
         });
@@ -116,6 +121,7 @@ export class MapTocUIComponent implements OnInit {
     tap(e => {
       this.isloading = false;
     }),
+    takeUntil(this.isDestroyed$),
     shareReplay()
   );
   readonly layerInfosTree$ = this.layerInfos$.pipe(
@@ -136,7 +142,12 @@ export class MapTocUIComponent implements OnInit {
   @Input() isMapLoading: boolean;
   @Output() layerVisibleChange = new EventEmitter<LayerSettingChangeModel>();
   @Output() layerLabelChange = new EventEmitter<LayerLabelChangeModel>();
+
   constructor(private mapCommonService: MapCommonService, private domSanitizer: DomSanitizer) { }
+  ngOnDestroy(): void {
+    this.isDestroyed$.next();
+    this.isDestroyed$.complete();
+  }
 
   ngOnInit(): void {
   }

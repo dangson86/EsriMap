@@ -1,7 +1,6 @@
 import { Component, OnInit, ViewChild, ElementRef, OnDestroy, Output, EventEmitter, ContentChildren, AfterContentInit, QueryList, Input, ViewChildren } from '@angular/core';
-import { from, Subject, Observable, of, fromEvent, merge } from 'rxjs';
-import { loadCss, loadScript } from 'esri-loader';
-import { switchMap, tap, takeUntil, shareReplay, map, mergeMap, filter, toArray, catchError, defaultIfEmpty } from 'rxjs/operators';
+import { from, Subject, Observable, of, fromEvent } from 'rxjs';
+import { switchMap, tap, takeUntil, shareReplay, mergeMap, toArray, catchError } from 'rxjs/operators';
 import { MapCommonService } from '../../services/map-common.service';
 import { MapInitModel, LayerSettingChangeModel, LayerLabelChangeModel, ExecuteIdentifyTaskResult } from '../../models/map-model.model';
 import { MapUrlDirective } from './directives/map-url.directive';
@@ -45,7 +44,7 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
   private readonly isDestroyed$ = new Subject<any>();
   private mapInitModel: MapInitModel;
 
-  private readonly initMap$: Observable<MapInitModel> = this.mapCommonService.loadEsriBaseScript$.pipe(
+  readonly initMap$: Observable<MapInitModel> = this.mapCommonService.loadEsriBaseScript$.pipe(
     switchMap(e => this.mapCommonService.loadModules('esri/Map', 'esri/views/MapView', 'esri/views/SceneView', 'esri/core/watchUtils')),
     switchMap(([Map, MapView, SceneView, watchUtils]) => {
       this.clearStaticText();
@@ -95,9 +94,8 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
   );
   mapScale: number;
 
-
   readonly uiConfig: MapCompUiConfig = {
-    showTocPannel: true,
+    showTocPannel: false,
     showBottomPannel: false,
     bottomPanel: {
       height: 25,
@@ -117,21 +115,6 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
 
   ngAfterContentInit(): void {
     this.initConfig();
-    // adding layer from directive
-    this.layerUrlList.forEach(layerUrl => {
-      if (layerUrl.url) {
-        merge(
-          of({ id: layerUrl.id, url: layerUrl.url }), // init layer
-          layerUrl.urlChange.pipe(map(e => ({ id: e.id, url: e.url })))// change layer if url change
-        ).pipe(
-          switchMap(e => this.addLayer(e.id, e.url)),
-          switchMap(view => this.zoomToExtent(view.layer.fullExtent).pipe(
-            map(e => view)
-          )),
-          takeUntil(this.isDestroyed$)
-        ).subscribe();
-      }
-    });
   }
 
   ngOnInit(): void {
@@ -209,22 +192,48 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
     return this.initMap$.pipe(
       switchMap(mapModel => this.mapCommonService.loadModules('esri/layers/MapImageLayer').pipe(
         switchMap(([MapImageLayer]) => {
-          const oldLayer = mapModel.map.findLayerById(layerId);
+          const oldLayer = mapModel.map.findLayerById(layerId) as esri.MapImageLayer;
+          let isAdded = false;
           if (oldLayer) {
-            mapModel.map.remove(oldLayer);
+            console.log(layerId, layerUrl);
+            if (oldLayer.id === layerId && oldLayer.url === layerUrl) {
+              isAdded = true;
+            } else {
+              mapModel.map.remove(oldLayer);
+            }
           }
 
-          const newImagelayer: esri.MapImageLayer = new MapImageLayer({
-            id: layerId,
-            url: layerUrl
-          });
 
-          mapModel.map.add(newImagelayer);  // adds the layer to the map
-          const onView = mapModel.mapView.whenLayerView(newImagelayer);
-          return from(onView);
+          if (isAdded) {
+            return from(mapModel.mapView.whenLayerView(oldLayer));
+          } else {
+            const newImagelayer: esri.MapImageLayer = new MapImageLayer({
+              id: layerId,
+              url: layerUrl
+            });
+
+            mapModel.map.add(newImagelayer);  // adds the layer to the map
+            const onView = mapModel.mapView.whenLayerView(newImagelayer);
+            return from(onView).pipe(
+              catchError(error => {
+                console.error(`fail to add layer ${layerId} ${layerUrl}`, error);
+                return of(null);
+              })
+            );
+          }
         })
       ))
     );
+  }
+
+  removeLayer(layerId: string, layerUrl: string) {
+    if (this.mapInitModel && this.mapInitModel.map) {
+      const map = this.mapInitModel.map;
+      const oldLayer = map.findLayerById(layerId) as esri.MapImageLayer;
+      if (oldLayer) {
+        map.remove(oldLayer);
+      }
+    }
   }
 
   zoomToExtent(fullExtent: esri.Extent) {
@@ -232,7 +241,12 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
       switchMap(mapModel => {
         const view = mapModel.mapView;
         return this.mapCommonService.projectGeometry([fullExtent], view.spatialReference).pipe(
-          switchMap(geometries => from(view.goTo(geometries)))
+          switchMap(geometries => from(view.goTo(geometries)).pipe(
+            catchError(error => {
+              console.error('zoom fail', error);
+              return of(null);
+            })
+          ))
         );
       })
     );

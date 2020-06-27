@@ -6,7 +6,18 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./test-map.component.scss']
 })
 export class TestMapComponent implements OnInit {
-  url = 'https://epic.ensiteusa.com/arcgis/rest/services/DS/LearnOptiRoute/MapServer';
+
+  urls = [];
+
+  testMaps = [
+    { id: 'test1', url: 'https://epic.ensiteusa.com/arcgis/rest/services/DS/ParcelTestData/MapServer' },
+    { id: 'test2', url: 'https://epic.ensiteusa.com/arcgis/rest/services/DS/pipeTallyGpsTest/MapServer' },
+    { id: 'test3', url: 'https://epic.ensiteusa.com/arcgis/rest/services/DS/OptiRouteTest/MapServer' },
+    { id: 'test4', url: 'https://epic.ensiteusa.com/arcgis/rest/services/DS/LearnOptiRoute2/MapServer' },
+    { id: 'test5', url: 'https://epic.ensiteusa.com/arcgis/rest/services/DS/LearnOptiRoute/MapServer' }
+  ];
+
+  defaultUrl = this.testMaps[0].url;
   constructor() { }
 
   ngOnInit(): void {
@@ -15,6 +26,9 @@ export class TestMapComponent implements OnInit {
     // console.log(event);
   }
   setUrl(input: string) {
-    this.url = input;
+    this.defaultUrl = input;
+  }
+  addMoreMap(testMap) {
+    this.urls.push(testMap);
   }
 }
