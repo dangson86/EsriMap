@@ -84,7 +84,14 @@
 
 .toggle-tools{
     .activedTool{
-        border-left: 4px solid #0088ff;
+        position: relative;
+        &:before{
+            content: " ";
+            border-left: 4px solid #0088ff;
+            position: absolute;
+            height: 100%;
+        }
+        
         
         button{
             color: #0088ff;

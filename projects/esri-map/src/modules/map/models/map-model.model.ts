@@ -28,7 +28,9 @@ export class LayerLabelChangeModel extends LayerSettingChangeModel {
 export interface ExecuteIdentifyTaskResult {
     url: string;
     layerIds: number[];
-    results: {
-        [key: string]: esri.IdentifyResult[]
-    };
+    layerResults: {
+        layerId: number;
+        layerName: string;
+        IdentifyResult: esri.IdentifyResult[];
+    }[];
 }

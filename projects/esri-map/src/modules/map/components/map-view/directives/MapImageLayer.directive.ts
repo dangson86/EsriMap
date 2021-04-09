@@ -58,6 +58,7 @@ export class MapImageLayerDirective implements OnInit, OnDestroy {
             takeUntil(this.isDestroyed$)
         ).subscribe();
     }
+
     ngOnDestroy(): void {
         this.isDestroyed$.next();
         this.isDestroyed$.complete();

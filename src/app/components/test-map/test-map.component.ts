@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 
 @Component({
   selector: 'app-test-map',
@@ -18,7 +18,7 @@ export class TestMapComponent implements OnInit {
   ];
 
   defaultUrl = this.testMaps[0].url;
-  constructor() { }
+  constructor(private cdr: ChangeDetectorRef) { }
 
   ngOnInit(): void {
   }

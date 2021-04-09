@@ -24,6 +24,21 @@ export class MapCommonService {
         );
     }
 
+    getSublayersInfo(mapUrl: string) {
+        return this.loadModules('esri/layers/MapImageLayer').pipe(
+            switchMap(([MapImageLayer]) => {
+                const newImagelayer: esri.MapImageLayer = new MapImageLayer({
+                    url: mapUrl
+                });
+                return from(newImagelayer.loadAll()).pipe(
+                    map(mapLayer => {
+                        return mapLayer.sublayers.toArray();
+                    })
+                );
+            })
+        );
+    }
+
     executeIdentifyTask(url: string, viewWidth: number, viewHeight: number, layerIds: number[], mapExtent: esri.Extent, geometry: esri.Geometry, tolerance = 3, returnGeometry = false): Observable<ExecuteIdentifyTaskResult> {
         return this.loadModules('esri/tasks/IdentifyTask', 'esri/tasks/support/IdentifyParameters').pipe(
             switchMap(([IdentifyTask, IdentifyParameters]) => {
@@ -40,12 +55,22 @@ export class MapCommonService {
                 return from(identifyTask.execute(params)).pipe(
                     map(e => {
                         const results = e.results as esri.IdentifyResult[];
-                        const groupByResult: { [key: string]: esri.IdentifyResult[] } = results.reduce((acc, curr) => (acc[curr.layerName] = [...acc[curr.layerName] || [], curr]) && acc, {});
-
+                        const groupByResult: { [key: string]: esri.IdentifyResult[] } = results.reduce((acc, curr) => (acc[curr.layerId] = [...acc[curr.layerId] || [], curr]) && acc, {});
+                        const layerResults = [];
+                        for (const key in groupByResult) {
+                            if (Object.prototype.hasOwnProperty.call(groupByResult, key)) {
+                                const items = groupByResult[key];
+                                layerResults.push({
+                                    layerId: Number.parseInt(key),
+                                    layerName: items[0].layerName,
+                                    IdentifyResult: items
+                                });
+                            }
+                        }
                         return {
                             url,
                             layerIds,
-                            results: groupByResult
+                            layerResults
                         };
                     }),
                 );

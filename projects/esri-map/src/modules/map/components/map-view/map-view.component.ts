@@ -1,8 +1,8 @@
-import { Component, OnInit, ViewChild, ElementRef, OnDestroy, Output, EventEmitter, ContentChildren, AfterContentInit, QueryList, Input, ViewChildren } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, OnDestroy, Output, EventEmitter, ContentChildren, AfterContentInit, QueryList, Input, ViewChildren, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { from, Subject, Observable, of, fromEvent } from 'rxjs';
-import { switchMap, tap, takeUntil, shareReplay, mergeMap, toArray, catchError } from 'rxjs/operators';
+import { switchMap, tap, takeUntil, shareReplay, mergeMap, toArray, catchError, map } from 'rxjs/operators';
 import { MapCommonService } from '../../services/map-common.service';
-import { MapInitModel, LayerSettingChangeModel, LayerLabelChangeModel, ExecuteIdentifyTaskResult } from '../../models/map-model.model';
+import { MapInitModel, LayerSettingChangeModel, LayerLabelChangeModel, ExecuteIdentifyTaskResult, LooseObject } from '../../models/map-model.model';
 import { MapUrlDirective } from './directives/map-url.directive';
 import { MapTocDirective } from './directives/map-toc.directive';
 import esri = __esri; // Esri TypeScript Types
@@ -25,7 +25,8 @@ interface MapCompUiConfig {
   // tslint:disable-next-line: component-selector
   selector: 'map-view',
   templateUrl: './map-view.component.html',
-  styleUrls: ['./map-view.component.scss']
+  styleUrls: ['./map-view.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
   @Input() sceneView = false;
@@ -55,7 +56,6 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
       // this.sceneView = false;
 
       this.mapInitModel = new MapInitModel();
-      this.isLoading.emit(true);
       if (this.sceneView) {
         const tempView: esri.SceneView = new SceneView({
           container: this.mapViewElement.nativeElement,
@@ -80,9 +80,7 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
       view.watch('scale', e => {
         this.mapScale = e;
       });
-      view.watch('updating', (e: boolean) => {
-        this.isLoading.emit(e);
-      });
+
       this.mapInitModel.map = newMap;
       return of(this.mapInitModel);
     }),
@@ -109,7 +107,7 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
   private readonly hostMouseMove$: Observable<MouseEvent> = fromEvent(this.elRef.nativeElement, 'mousemove');
   private readonly hostMouseUp$ = fromEvent(this.elRef.nativeElement, 'mouseup');
   identifyResults: ExecuteIdentifyTaskResult[];
-  constructor(private mapCommonService: MapCommonService, private elRef: ElementRef) {
+  constructor(private mapCommonService: MapCommonService, private elRef: ElementRef, private cdr: ChangeDetectorRef) {
 
   }
 
@@ -125,11 +123,12 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
     this.isDestroyed$.next();
   }
   activateTool(toolName: availableToolNames) {
-
     if (this.uiConfig.leftMenuTools.selectedTool !== toolName) {
       this.uiConfig.leftMenuTools.selectedTool = toolName;
     } else {
       this.uiConfig.leftMenuTools.selectedTool = 'noSelectTool';
+
+      this.resetDrawToolAction();
     }
     this.toolChange.emit(this.uiConfig.leftMenuTools.selectedTool);
     switch (this.uiConfig.leftMenuTools.selectedTool) {
@@ -142,37 +141,45 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
             mergeMap(toc => {
               const view = this.mapInitModel.mapView;
               return toc.getIdentifiableLayerIds().pipe(
-                mergeMap(layerIds => {
+                mergeMap(layers => {
+                  const defaultValue = of<ExecuteIdentifyTaskResult>(null);
+                  const layerIds = layers?.map(e => e.id);
                   if (layerIds && layerIds.length > 0) {
                     return this.mapCommonService.executeIdentifyTask(toc.url, view.width, view.height, layerIds, view.extent, geometry).pipe(
+                      tap(taskResult => {
+                        taskResult?.layerResults.forEach((layerResult: LooseObject) => {
+                          layerResult.fields = layers.find(f => f.id === layerResult.layerId)?.fields;
+                        });
+                      }),
                       catchError(error => {
                         console.error(error);
-                        return of<ExecuteIdentifyTaskResult>(null);
+                        return defaultValue;
                       })
                     );
                   }
-                  return of<ExecuteIdentifyTaskResult>(null);
+                  return defaultValue;
                 })
               );
             }),
-            // defaultIfEmpty(null),
-            // filter(e => e != null),
             toArray()
           )),
+          map(e => {
+            this.identifyResults = null;
+            if (e && e.length > 0) {
+              this.identifyResults = e.filter(f => f !== null);
+              if (this.identifyResults.length > 0) {
+                this.uiConfig.showBottomPannel = true;
+              }
+            }
+            return this.identifyResults;
+          }),
           tap(e => {
             this.clearSelectedTool();
             this.isLoading.next(false);
-            if (e && e.length > 0) {
-              this.uiConfig.showBottomPannel = true;
-              this.identifyResults = e;
-            }
-
             this.identifyReturn.emit(e);
           }),
-        ).subscribe(e => {
-          console.log(e);
+        ).subscribe(e => { });
 
-        });
         break;
       case 'zoomIn':
         break;
@@ -182,6 +189,13 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
         break;
     }
   }
+  private resetDrawToolAction() {
+    const drawAction = this.mapInitModel.mapTools.draw.activeAction;
+    if (drawAction) {
+      this.mapInitModel.mapTools.draw.reset();
+    }
+  }
+
   toggleLeftMenu() {
     this.uiConfig.showTocPannel = !this.uiConfig.showTocPannel;
   }
@@ -192,10 +206,10 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
     return this.initMap$.pipe(
       switchMap(mapModel => this.mapCommonService.loadModules('esri/layers/MapImageLayer').pipe(
         switchMap(([MapImageLayer]) => {
+          this.isLoading.next(true);
           const oldLayer = mapModel.map.findLayerById(layerId) as esri.MapImageLayer;
           let isAdded = false;
           if (oldLayer) {
-            console.log(layerId, layerUrl);
             if (oldLayer.id === layerId && oldLayer.url === layerUrl) {
               isAdded = true;
             } else {
@@ -203,9 +217,12 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
             }
           }
 
-
           if (isAdded) {
-            return from(mapModel.mapView.whenLayerView(oldLayer));
+            return from(mapModel.mapView.whenLayerView(oldLayer)).pipe(
+              tap(e => {
+                this.isLoading.next(false);
+              })
+            );
           } else {
             const newImagelayer: esri.MapImageLayer = new MapImageLayer({
               id: layerId,
@@ -215,6 +232,9 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
             mapModel.map.add(newImagelayer);  // adds the layer to the map
             const onView = mapModel.mapView.whenLayerView(newImagelayer);
             return from(onView).pipe(
+              tap(e => {
+                this.isLoading.next(false);
+              }),
               catchError(error => {
                 console.error(`fail to add layer ${layerId} ${layerUrl}`, error);
                 return of(null);
@@ -315,7 +335,9 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
         switchMap(([Polygon, Graphic]) => {
           const view = mapModel.mapView;
           view.focus();
-          const drawAction = mapModel.mapTools.draw.create('rectangle') as esri.SegmentDrawAction;
+          let drawAction = mapModel.mapTools.draw.activeAction;
+
+          drawAction = mapModel.mapTools.draw.create('rectangle');
           const sp = mapModel.mapView.spatialReference;
           const graphics = mapModel.mapView.graphics;
           // fires when the pointer moves
@@ -385,9 +407,25 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
     // set init height to 25% of the map height
     const bottomPanelHeight = this.elRef.nativeElement.clientHeight * 0.25;
     this.setBottomPanelHeight(bottomPanelHeight);
+
+    if (this.layerUrlList) {
+      this.layerUrlList.changes.pipe(
+        takeUntil(this.isDestroyed$)
+      ).subscribe(e => {
+        this.cdr.markForCheck();
+      });
+      this.layerUrlList.forEach(layerUrl => {
+        layerUrl.urlChange.pipe(
+          takeUntil(this.isDestroyed$)
+        ).subscribe(urlDirective => {
+          this.cdr.markForCheck();
+        });
+      });
+    }
   }
   private setBottomPanelHeight(bottomPanelHeight: number) {
     this.uiConfig.bottomPanel.height = bottomPanelHeight;
     this.uiConfig.bottomPanel.bottom = bottomPanelHeight * -1;
+    this.cdr.markForCheck();
   }
 }

@@ -1,7 +1,7 @@
 import { Component, OnInit, Input, Output, EventEmitter, OnDestroy } from '@angular/core';
 import { MapCommonService } from '../../services/map-common.service';
-import { switchMap, map, tap, filter, shareReplay, take, mergeAll, toArray, mergeMap, first, finalize, delay, takeUntil } from 'rxjs/operators';
-import { of, Observable, BehaviorSubject, ReplaySubject, Subject, from } from 'rxjs';
+import { switchMap, map, tap, filter, shareReplay, take, toArray, takeUntil } from 'rxjs/operators';
+import { of, Observable, BehaviorSubject, Subject, from, combineLatest } from 'rxjs';
 import * as apiModel from '../../models/api-request.models';
 import esri = __esri; // Esri TypeScript Types
 import { MatCheckboxChange } from '@angular/material/checkbox';
@@ -9,42 +9,18 @@ import { LooseObject, LayerSettingChangeModel, LayerLabelChangeModel } from '../
 import { DomSanitizer } from '@angular/platform-browser';
 
 
-class LayerInfoTree implements apiModel.LayerInfo {
-  [key: string]: any;
-  defaultVisibility: boolean;
-  id: number;
-  maxScale: number;
-  minScale: number;
-  name: string;
-  parentLayerId: number;
-  subLayerIds: number[];
-
-  fullUrl?: string;
-  subLayerInfos?: apiModel.LayerInfo[];
-  isGroupLayer: boolean;
-  checked: boolean;
-  layerInfo$: Observable<LayerInfoDetail>;
-}
-interface LayerInfoDetail {
-  [key: string]: any;
-  showLabel: boolean;
-  identifiable: boolean;
-  hasLabels: boolean;
+interface Sublayer2 extends esri.Sublayer {
+  hasLegends: boolean;
+  hasLabel: boolean;
   hasQuery: boolean;
-  id: number;
-  description: string;
-  displayField: string;
-  canModifyLayer: boolean;
+  identifiable: boolean;
+  checked: boolean;
+  isGroupLayer: boolean;
   legends: apiModel.MapLegendDetail[];
-  hasLegends?: boolean;
-  geometryType: string;
-  name: string;
-  type: string;
-  drawingInfo: {
-    labelingInfo: esri.LabelClass[],
-    renderer: esri.Renderer
-  };
+  subLayers: Sublayer2[];
 }
+
+
 
 @Component({
   selector: 'map-toc-ui',
@@ -52,17 +28,19 @@ interface LayerInfoDetail {
   styleUrls: ['./map-toc-ui.component.scss']
 })
 export class MapTocUIComponent implements OnInit, OnDestroy {
+
   isloading = false;
   private readonly isDestroyed$ = new Subject();
 
   readonly mapUrl$ = new BehaviorSubject<string>(null);
   readonly mapScale$ = new Subject<number>();
+  readonly mapSubLayers$ = this.mapUrl$.pipe(
+    switchMap(url => this.mapCommonService.getSublayersInfo(url)),
+    map(e => e as Sublayer2[])
+  );
   readonly mapInfo$ = this.mapUrl$.pipe(
     filter(e => e != null),
     switchMap(url => this.mapCommonService.getUrljsonInfo(url)),
-    // tap(e => {
-    //   console.log(e);
-    // }),
     takeUntil(this.isDestroyed$),
     shareReplay(1)
   );
@@ -71,62 +49,23 @@ export class MapTocUIComponent implements OnInit, OnDestroy {
     switchMap(url => this.mapCommonService.getUrljsonInfo(`${url}/legend`).pipe(
       map(e => e.layers as apiModel.MapLegend[]))
     ),
-    // tap(e => {
-    //   console.log(e);
-    // }),
     takeUntil(this.isDestroyed$),
     shareReplay(1),
   );
-  readonly layerInfos$ = this.mapInfo$.pipe(
-    filter(e => e != null),
-    map(e => e.layers as LayerInfoTree[]),
-    tap(list => {
-      this.isloading = true;
-      if (list) {
-        list.forEach(layer => {
-          layer.fullUrl = `${this.mapUrl$.value}/${layer.id}`;
-          layer.layerInfo$ = this.mapCommonService.getUrljsonInfo(layer.fullUrl).pipe(
-            tap(() => {
-              this.isloading = true;
-            }),
-            switchMap((layerInfo: LayerInfoDetail) => this.mapLegends$.pipe(
-              take(1),
-              map(mapLegends => {
-                if (mapLegends) {
-                  const temp = mapLegends.find(e => e.layerId === layerInfo.id);
-                  layerInfo.legends = temp && temp.legend;
-                  layerInfo.hasLegends = layerInfo.legends && layerInfo.legends.length > 0;
-                  layerInfo.showLabel = layerInfo.hasLabels;
-                  layerInfo.identifiable = true; // turn on by default
-                  layerInfo.hasQuery = layerInfo.capabilities.indexOf('Query') > -1;
+  readonly tocLayerTree$ = combineLatest([this.mapSubLayers$, this.mapLegends$]).pipe(
+    switchMap(([subLayers, legends]) => from(subLayers).pipe(
+      tap(subLayer => {
+        subLayer.legends = legends.find(e => e.layerId === subLayer.id)?.legend || [];
+        this.buildTree2(subLayer);
+        return of(subLayer);
+      }),
+      toArray(),
+    )),
+    shareReplay(1)
+  );
 
-                  if (layerInfo.hasLegends) {
-                    layerInfo.legends.forEach(l => {
-                      l.base64Image = this.domSanitizer.bypassSecurityTrustResourceUrl(`data:${l.contentType};base64, ${l.imageData}`);
-                    });
-                  }
-                }
-                return layerInfo;
-              }),
-            )),
-            tap(() => {
-              this.isloading = false;
-            }),
-            takeUntil(this.isDestroyed$),
-            shareReplay(1)
-          );
-        });
-      }
-    }),
-    tap(e => {
-      this.isloading = false;
-    }),
-    takeUntil(this.isDestroyed$),
-    shareReplay()
-  );
-  readonly layerInfosTree$ = this.layerInfos$.pipe(
-    map(list => this.buildTree(list))
-  );
+
+
 
   @Input() tocIndex = 0;
   @Input() set mapScale(input: number) {
@@ -150,8 +89,9 @@ export class MapTocUIComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+
   }
-  onLayerSelectChange(event: MatCheckboxChange, layer: LayerInfoTree, mapInfo: LooseObject, layers: LayerInfoTree[], keyPress: string) {
+  onLayerSelectChange(event: MatCheckboxChange, layer: Sublayer2, mapInfo: LooseObject, layers: Sublayer2[], keyPress: string) {
     let visible = event.checked;
     let layerid = [layer.id];
     if (keyPress === 'Control') {
@@ -193,41 +133,52 @@ export class MapTocUIComponent implements OnInit, OnDestroy {
       layerid,
     });
   }
-  toggleLabel(infoDetail: LayerInfoDetail) {
-    infoDetail.showLabel = !infoDetail.showLabel;
+  toggleLabel(infoDetail: Sublayer2) {
+    infoDetail.labelsVisible = !infoDetail.labelsVisible;
     this.layerLabelChange.emit({
       mapUrl: this.mapUrl$.value,
-      visible: infoDetail.showLabel,
+      visible: infoDetail.labelsVisible,
       layerid: [infoDetail.id]
     });
   }
 
-  getIdentifiableLayerIds(): Observable<number[]> {
-    return this.layerInfos$.pipe(
+  getIdentifiableLayerIds(): Observable<{ id: number, fields: esri.Field[] }[]> {
+    return this.tocLayerTree$.pipe(
       take(1),
       switchMap(layers => from(layers).pipe(
-        map(layer => layer.layerInfo$.pipe(
-          filter(layerInfo => layerInfo.identifiable && layerInfo.hasQuery && layer.checked),
-          map(layerInfo => layerInfo.id),
-        ))
+        filter(layerInfo => layerInfo.identifiable && layerInfo.hasQuery && layerInfo.checked),
+        map(e => {
+          return {
+            id: e.id,
+            fields: e.fields
+          };
+        })
       )),
-      mergeAll(),
       toArray()
     );
   }
 
-  private buildTree(list: apiModel.LayerInfo[]): LayerInfoTree[] {
-    const result: LayerInfoTree[] = [];
-    list.forEach((layerInfo: LayerInfoTree) => {
-      layerInfo.isGroupLayer = layerInfo.subLayerIds === null ? false : true;
-      layerInfo.checked = layerInfo.defaultVisibility;
-      if (layerInfo.parentLayerId === -1) {
-        result.push(layerInfo);
-      } else {
-        list[layerInfo.parentLayerId].subLayerInfos = list[layerInfo.parentLayerId].subLayerInfos || [];
-        list[layerInfo.parentLayerId].subLayerInfos.push(layerInfo);
+  getSubLayers(): Observable<esri.Sublayer[]> {
+    return this.tocLayerTree$.pipe(
+      take(1),
+    );
+  }
+
+  private buildTree2(subLayer: Sublayer2) {
+    if (subLayer) {
+      subLayer.subLayers = subLayer.sublayers?.toArray() as Sublayer2[];
+      subLayer.isGroupLayer = subLayer.sublayers === null ? false : true;
+      subLayer.checked = subLayer.visible;
+      subLayer.hasLabel = subLayer.labelingInfo != null;
+      subLayer.hasQuery = subLayer.layer.capabilities.operations.supportsQuery;
+      subLayer.identifiable = true;
+      subLayer.hasLegends = subLayer.legends?.length > 0;
+      if (subLayer.hasLegends) {
+        subLayer.legends.forEach(l => {
+          l.base64Image = this.domSanitizer.bypassSecurityTrustResourceUrl(`data:${l.contentType};base64, ${l.imageData}`);
+        });
       }
-    });
-    return result as any;
+      subLayer.subLayers?.forEach(e => this.buildTree2(e));
+    }
   }
 }
