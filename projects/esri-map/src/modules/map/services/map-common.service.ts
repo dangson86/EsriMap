@@ -9,11 +9,11 @@ import { LooseObject, ExecuteIdentifyTaskResult } from '../models/map-model.mode
 export class MapCommonService {
 
     private GEOMETRY_SERVICE_URL = 'https://utility.arcgisonline.com/ArcGIS/rest/services/Geometry/GeometryServer';
-
+    private readonly version = '4.18';
     readonly loadEsriBaseScript$ = from(loadScript({
-        url: 'https://js.arcgis.com/4.15/'
+        url: `https://js.arcgis.com/${this.version}/`
     }).then(e => {
-        loadCss('https://js.arcgis.com/4.15/esri/themes/light/main.css');
+        loadCss(`https://js.arcgis.com/${this.version}/esri/themes/light/main.css`);
     })).pipe(
         shareReplay(1)
     );
