@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
-  "version": 1, 
+  "version": 1,
   "newProjectRoot": "projects",
   "projects": {
     "abc": {
@@ -123,46 +123,7 @@
           }
         }
       }
-    },
-    "EsriMap": {
-      "projectType": "library",
-      "root": "projects/esri-map",
-      "sourceRoot": "projects/esri-map/src",
-      "prefix": "lib",
-      "architect": {
-        "build": {
-          "builder": "@angular-devkit/build-ng-packagr:build",
-          "options": {
-            "tsConfig": "projects/esri-map/tsconfig.lib.json",
-            "project": "projects/esri-map/ng-package.json"
-          },
-          "configurations": {
-            "production": {
-              "tsConfig": "projects/esri-map/tsconfig.lib.prod.json"
-            }
-          }
-        },
-        "test": {
-          "builder": "@angular-devkit/build-angular:karma",
-          "options": {
-            "main": "projects/esri-map/src/test.ts",
-            "tsConfig": "projects/esri-map/tsconfig.spec.json",
-            "karmaConfig": "projects/esri-map/karma.conf.js"
-          }
-        },
-        "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
-          "options": {
-            "tsConfig": [
-              "projects/esri-map/tsconfig.lib.json",
-              "projects/esri-map/tsconfig.spec.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
-            ]
-          }
-        }
-      }
-    }},
+    }
+  },
   "defaultProject": "abc"
 }
