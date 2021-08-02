@@ -14,7 +14,6 @@ interface MapCompUiConfig {
   showBottomPannel: boolean;
   bottomPanel: {
     height: number,
-    bottom: number
   };
   leftMenuTools: {
     selectedTool: availableToolNames
@@ -97,13 +96,12 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
     showBottomPannel: false,
     bottomPanel: {
       height: 25,
-      bottom: -25
     },
     leftMenuTools: {
       selectedTool: 'noSelectTool'
     }
   };
-
+  @ViewChild('bottomPannelWrapper', { static: true }) private bottomPanelElement: ElementRef;
   private readonly hostMouseMove$: Observable<MouseEvent> = fromEvent(this.elRef.nativeElement, 'mousemove');
   private readonly hostMouseUp$ = fromEvent(this.elRef.nativeElement, 'mouseup');
   identifyResults: ExecuteIdentifyTaskResult[];
@@ -290,12 +288,11 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
     });
   }
   onBottomPanelResize(event: DragEvent) {
-    const currentScreenY = event.screenY;
-    const currentHeight = this.uiConfig.bottomPanel.height;
     this.hostMouseMove$.pipe(
       tap(e => {
-        const ratio = currentScreenY - e.screenY;
-        this.setBottomPanelHeight(currentHeight + ratio);
+        var hostClientHeight = this.elRef.nativeElement.clientHeight;
+        const ratio = hostClientHeight - e.clientY;
+        this.setBottomPanelHeight(ratio);
       }),
       takeUntil(this.hostMouseUp$),
     ).subscribe();
@@ -403,29 +400,14 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
     this.mapViewElement.nativeElement.textContent = null;
   }
   private initConfig() {
-
     // set init height to 25% of the map height
     const bottomPanelHeight = this.elRef.nativeElement.clientHeight * 0.25;
     this.setBottomPanelHeight(bottomPanelHeight);
-
-    if (this.layerUrlList) {
-      this.layerUrlList.changes.pipe(
-        takeUntil(this.isDestroyed$)
-      ).subscribe(e => {
-        this.cdr.markForCheck();
-      });
-      this.layerUrlList.forEach(layerUrl => {
-        layerUrl.urlChange.pipe(
-          takeUntil(this.isDestroyed$)
-        ).subscribe(urlDirective => {
-          this.cdr.markForCheck();
-        });
-      });
-    }
   }
   private setBottomPanelHeight(bottomPanelHeight: number) {
     this.uiConfig.bottomPanel.height = bottomPanelHeight;
-    this.uiConfig.bottomPanel.bottom = bottomPanelHeight * -1;
-    this.cdr.markForCheck();
+    if (this.bottomPanelElement) {
+      this.bottomPanelElement.nativeElement.style.height = `${bottomPanelHeight}px`;
+    }
   }
 }

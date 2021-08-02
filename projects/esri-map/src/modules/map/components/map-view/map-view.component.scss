@@ -106,8 +106,8 @@
     background-color: white;
     margin-top: 8px;
     // border: 1px solid gray;
-    transition: bottom 1s;
     &.showBottomPanel{
+        transition: height 1s;
     //    height: unset!important;
     }
     &.hideBottomPanel{
