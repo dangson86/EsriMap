@@ -101,14 +101,14 @@
 
 
 .bottom-pannel-wrapper{
-    width: 100%;
+    width: 99%;
+    flex:0 0 auto;
+    margin: auto;
     position: relative;
     background-color: white;
     margin-top: 8px;
-    // border: 1px solid gray;
     &.showBottomPanel{
         transition: height 1s;
-    //    height: unset!important;
     }
     &.hideBottomPanel{
         transition: height 1s;
@@ -123,9 +123,10 @@
         position: absolute;
         height: 8px;
         width: 100%;
-        background-color: #d0d0d0;
+        background-color: #eae6f7;
         top: -9px;
-
+        left: 0px;
+        border-bottom: 1px solid #0079c1;
         .expand-buttons{
             position: absolute;
             top: -8px;
@@ -218,3 +219,13 @@
     100%{background-position:0% 10%}
 }
 
+.feature-table{
+    .col-title{
+        color: #71415f;
+    }
+    .feature-row{
+        .feature-value{
+            color: #71415f;
+        }
+    }
+}

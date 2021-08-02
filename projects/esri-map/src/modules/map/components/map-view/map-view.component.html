@@ -69,15 +69,16 @@
     <div class="panel-content" *ngIf="uiConfig.showBottomPannel">
         <table *ngFor="let map of identifyResults">
             <tr *ngFor="let item of map.layerResults ">
-                <td>{{item.layerName}}</td>
+                <td class="feature-layer-name">{{item.layerName}}</td>
                 <td>
-                    <table>
+                    <table class="feature-table">
                         <thead>
-                            <th *ngFor="let f of item.fields">{{f.name}}</th>
+                            <th class="col-title" *ngFor="let f of item.fields">{{f.name}}</th>
                         </thead>
                         <tbody>
-                            <tr *ngFor="let row of item.IdentifyResult">
-                                <td *ngFor="let f of item.fields">{{row.feature.attributes[f.name]}}</td>
+                            <tr class="feature-row" *ngFor="let row of item.IdentifyResult">
+                                <td class="feature-value" *ngFor="let f of item.fields">
+                                    {{row.feature.attributes[f.name]}}</td>
                             </tr>
                         </tbody>
                     </table>
