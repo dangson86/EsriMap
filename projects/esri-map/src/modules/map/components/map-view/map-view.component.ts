@@ -116,13 +116,20 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
   }
   onLefPanelResize(mouseDown: MouseEvent, leftPanel: any) {
     var currentValue = leftPanel.clientWidth;
+    this.elRef.nativeElement.style.cursor = "col-resize"
+    var target = mouseDown.target as any;
+    target.style.cursor = "col-resize"
     this.hostMouseMove$.pipe(
       tap(e => {
         const ratio = e.clientX - mouseDown.clientX;
         const newWidth = currentValue + ratio;
         leftPanel.style.width = `${newWidth}px`;
       }),
-      takeUntil(this.hostMouseUp$),
+      takeUntil(this.hostMouseUp$.pipe(
+        tap(() => {
+          this.elRef.nativeElement.style.cursor = "unset";
+          target.style.cursor = "pointer";
+        }))),
     ).subscribe();
   }
   ngOnDestroy(): void {

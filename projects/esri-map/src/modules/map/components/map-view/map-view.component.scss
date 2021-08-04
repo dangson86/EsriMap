@@ -23,10 +23,10 @@
     width: 25%;
     margin-top: 5px;
     &.hide{
-        animation: hideLeftPanel forwards ease-in 1s;
+        animation: hideLeftPanel forwards ease-in 0.7s;
     }
     &.show{
-        animation: showLeftPanel forwards ease-in 1s;
+        animation: showLeftPanel forwards ease-out 0.7s;
     }
     @keyframes showLeftPanel {
         0%{
