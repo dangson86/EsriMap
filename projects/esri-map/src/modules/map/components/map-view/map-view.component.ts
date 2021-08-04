@@ -109,6 +109,12 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
 
   ngAfterContentInit(): void {
     this.initConfig();
+    this.layerUrlList.changes.pipe(
+      tap(e => {
+        this.cdr.markForCheck();
+      }),
+      takeUntil(this.isDestroyed$)
+    ).subscribe();
   }
 
   ngOnInit(): void {
