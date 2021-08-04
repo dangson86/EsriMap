@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { MapCommonService } from './services/map-common.service';
 import { MapViewComponent } from './components/map-view/map-view.component';
 import { MapUrlDirective } from './components/map-view/directives/map-url.directive';
-import { MapTocDirective } from './components/map-view/directives/map-toc.directive';
 import { MapTocUIComponent } from './components/map-toc-ui/map-toc-ui.component';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -21,7 +20,6 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
   declarations: [
     MapViewComponent,
     MapUrlDirective,
-    MapTocDirective,
     MapTocUIComponent
   ],
   imports: [
@@ -43,7 +41,6 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
   exports: [
     MapViewComponent,
     MapUrlDirective,
-    MapTocDirective,
     FormsModule
   ]
 })

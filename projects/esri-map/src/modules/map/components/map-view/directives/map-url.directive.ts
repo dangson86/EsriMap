@@ -9,7 +9,7 @@ import { MapViewComponent } from '../map-view.component';
   selector: 'map-url',
 })
 export class MapUrlDirective implements OnInit, OnChanges {
-  @Input() toc = false;
+  @Input() toc = true;
 
   @Output() readonly urlChange = new EventEmitter<MapUrlDirective>();
 
@@ -18,6 +18,9 @@ export class MapUrlDirective implements OnInit, OnChanges {
   @Input() set url(input: string) {
     this.inputUrl.next(input);
     this._url = input;
+  }
+  get url() {
+    return this._url;
   }
 
   private _id = null;

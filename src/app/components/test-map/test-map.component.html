@@ -33,12 +33,10 @@
 
 <div class="right test testDiv">
     <map-view sceneView="true" (loaded)="onmapLoaded($event)" #map>
-        <map-url [id]="'my test default'" toc="true" [url]="defaultUrl"> </map-url>
-        <map-toc [url]="defaultUrl"></map-toc>
+        <map-url [id]="'my test default'" [url]="defaultUrl"> </map-url>
 
         <ng-container *ngFor="let test of urls; let index = index">
-            <map-url [id]="test.id" toc="true" [url]="test.url"> </map-url>
-            <map-toc [url]="test.url"></map-toc>
+            <map-url [id]="test.id" [url]="test.url"> </map-url>
         </ng-container>
     </map-view>
 </div>

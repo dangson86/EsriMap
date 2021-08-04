@@ -11,10 +11,12 @@
         <mat-tab-group class="tab-group">
             <mat-tab label="TOC">
                 <div class="tabDiv tocDiv">
-                    <map-toc-ui class="toc" *ngFor="let toc of tocUrlList; let i=index;" [url]="toc.url"
-                        [mapScale]="mapScale" [tocIndex]="i" (layerVisibleChange)="onLayerSettingChange($event)"
-                        (layerLabelChange)="onLayerLabelChange($event)">
-                    </map-toc-ui>
+                    <ng-container *ngFor="let layerDirective of layerUrlList; let i=index;">
+                        <map-toc-ui *ngIf="layerDirective.toc" class="toc" [url]="layerDirective.url"
+                            [mapScale]="mapScale" [tocIndex]="i" (layerVisibleChange)="onLayerSettingChange($event)"
+                            (layerLabelChange)="onLayerLabelChange($event)">
+                        </map-toc-ui>
+                    </ng-container>
                 </div>
             </mat-tab>
             <mat-tab label="Base Map">

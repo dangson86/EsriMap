@@ -4,7 +4,6 @@ import { switchMap, tap, takeUntil, shareReplay, mergeMap, toArray, catchError, 
 import { MapCommonService } from '../../services/map-common.service';
 import { MapInitModel, LayerSettingChangeModel, LayerLabelChangeModel, ExecuteIdentifyTaskResult, LooseObject } from '../../models/map-model.model';
 import { MapUrlDirective } from './directives/map-url.directive';
-import { MapTocDirective } from './directives/map-toc.directive';
 import esri = __esri; // Esri TypeScript Types
 import { MapTocUIComponent } from '../map-toc-ui/map-toc-ui.component';
 
@@ -37,8 +36,6 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
 
   @ViewChild('mapView', { static: true }) mapViewElement: ElementRef;
   @ContentChildren(MapUrlDirective) layerUrlList!: QueryList<MapUrlDirective>;
-  @ContentChildren(MapTocDirective) tocUrlList!: QueryList<MapTocDirective>;
-
   @ViewChildren(MapTocUIComponent) tocComponents: QueryList<MapTocUIComponent>;
 
   private readonly isDestroyed$ = new Subject<any>();
