@@ -20,13 +20,25 @@
     position: absolute;
     top: 0;
     height: 100%;
-    left: -25%;
     width: 25%;
     margin-top: 5px;
-    transition: left 1s;
-    &.showTocPanel{
-        left: 0;
+    &.hide{
+        animation: hideLeftPanel forwards ease-in 1s;
     }
+    &.show{
+        animation: showLeftPanel forwards ease-in 1s;
+    }
+    @keyframes showLeftPanel {
+        0%{
+            width: 0;
+        }
+    }
+    @keyframes hideLeftPanel {
+        100%{
+            width: 0;
+        }
+    }
+
     .tocDiv{
         width: calc(100% - 10px);
         max-height: calc(100% - 10px);
@@ -228,4 +240,11 @@
             color: #71415f;
         }
     }
+}
+
+.leftmenuResizeBtn{
+    color: #3f51b5;
+    display: inline-block;
+    cursor: pointer;
+    user-select: none;
 }

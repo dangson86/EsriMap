@@ -29,6 +29,9 @@ interface Sublayer2 extends esri.Sublayer {
 })
 export class MapTocUIComponent implements OnInit, OnDestroy {
 
+  readonly configs = {
+    hideLegend: false
+  };
   isloading = false;
   private readonly isDestroyed$ = new Subject();
 
@@ -90,6 +93,9 @@ export class MapTocUIComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
 
+  }
+  showHideLayerLegend() {
+    this.configs.hideLegend = !this.configs.hideLegend;
   }
   onLayerSelectChange(event: MatCheckboxChange, layer: Sublayer2, mapInfo: LooseObject, layers: Sublayer2[], keyPress: string) {
     let visible = event.checked;

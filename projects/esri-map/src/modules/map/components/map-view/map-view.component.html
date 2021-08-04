@@ -7,7 +7,7 @@
 
 <div class="mapAndToc">
     <div #mapView class="mapView">map not init</div>
-    <div class="toc-wrapper" [class.showTocPanel]="uiConfig.showTocPannel">
+    <div class="toc-wrapper" #tocWrapper [class.show]="uiConfig.showTocPannel" [class.hide]="!uiConfig.showTocPannel">
         <mat-tab-group class="tab-group">
             <mat-tab label="TOC">
                 <div class="tabDiv tocDiv">
@@ -29,7 +29,7 @@
             </mat-tab>
         </mat-tab-group>
 
-        <div class="toc-menu">
+        <div class="toc-menu" style="opacity: 1;">
             <div class="toc-func">
                 <button class="toc-btn" mat-icon-button color="primary" (click)="toggleLeftMenu()"
                     [class.mapIsLoading]="isLoading | async">
@@ -52,17 +52,18 @@
                 </div>
             </div>
 
-
-            <div class="toc-func">
-                <button class="toc-btn" mat-icon-button color="primary">
-                    <mat-icon>drag_indicator</mat-icon>
-                </button>
-            </div>
             <div class="toc-func">
                 <button class="toc-btn" mat-icon-button color="primary">
                     <mat-icon>list</mat-icon>
                 </button>
             </div>
+
+            <div class="toc-func" style="text-align: center;">
+                <span class="toc-btn leftmenuResizeBtn" (mousedown)="onLefPanelResize($event,tocWrapper)">
+                    <mat-icon title="re-size">drag_indicator</mat-icon>
+                </span>
+            </div>
+
         </div>
     </div>
 </div>

@@ -37,8 +37,12 @@
                     (click)="layer.identifiable = !layer.identifiable">
                     <mat-icon class="functionBtn">not_listed_location</mat-icon>
                 </button>
+                <mat-icon class="legend-expansion-indicator" [class.hide]="configs.hideLegend"
+                    (click)="showHideLayerLegend()">expand_less</mat-icon>
+
             </span>
-            <div class="legendDiv" *ngIf="layer.checked && layer.hasLegends">
+            <div class="legendDiv animated" [class.hide]="configs.hideLegend" [class.show]="!configs.hideLegend"
+                *ngIf="layer.checked && layer.hasLegends">
                 <ng-container *ngTemplateOutlet="layerLegend; context:{$implicit:layer}">
                 </ng-container>
             </div>

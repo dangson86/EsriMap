@@ -35,6 +35,7 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
   @Output() readonly identifyReturn = new EventEmitter<ExecuteIdentifyTaskResult[]>();
 
   @ViewChild('mapView', { static: true }) mapViewElement: ElementRef;
+  @ViewChild('leftmenuResizeBtn', { static: true }) leftMenuResizeBtn: ElementRef;
   @ContentChildren(MapUrlDirective) layerUrlList!: QueryList<MapUrlDirective>;
   @ViewChildren(MapTocUIComponent) tocComponents: QueryList<MapTocUIComponent>;
 
@@ -89,7 +90,7 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
   mapScale: number;
 
   readonly uiConfig: MapCompUiConfig = {
-    showTocPannel: false,
+    showTocPannel: true,
     showBottomPannel: false,
     bottomPanel: {
       height: 25,
@@ -113,7 +114,17 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
   ngOnInit(): void {
     this.initMap();
   }
-
+  onLefPanelResize(mouseDown: MouseEvent, leftPanel: any) {
+    var currentValue = leftPanel.clientWidth;
+    this.hostMouseMove$.pipe(
+      tap(e => {
+        const ratio = e.clientX - mouseDown.clientX;
+        const newWidth = currentValue + ratio;
+        leftPanel.style.width = `${newWidth}px`;
+      }),
+      takeUntil(this.hostMouseUp$),
+    ).subscribe();
+  }
   ngOnDestroy(): void {
     this.isDestroyed$.next();
   }
