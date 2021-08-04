@@ -1,5 +1,6 @@
 <div class="left testDiv">
     <div>
+        <span>Scene view: <input type="checkbox" [(ngModel)]="sceneView" (change)="onMapChange($event)" /></span>
         <input type="text" [(ngModel)]="defaultUrl" style="width: 100%;">
         <button *ngFor="let test of testMaps;let index = index" (click)="setUrl(test.url)">url {{index}}</button>
 
@@ -32,7 +33,7 @@
 </div>
 
 <div class="right test testDiv">
-    <map-view sceneView="true" (loaded)="onmapLoaded($event)" #map>
+    <map-view [sceneView]="sceneView" (loaded)="onmapLoaded($event)" #map>
         <map-url [id]="'my test default'" [url]="defaultUrl"> </map-url>
 
         <ng-container *ngFor="let test of urls; let index = index">

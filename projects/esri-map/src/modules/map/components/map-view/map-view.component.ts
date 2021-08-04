@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild, ElementRef, OnDestroy, Output, EventEmitter, ContentChildren, AfterContentInit, QueryList, Input, ViewChildren, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
-import { from, Subject, Observable, of, fromEvent } from 'rxjs';
-import { switchMap, tap, takeUntil, shareReplay, mergeMap, toArray, catchError, map } from 'rxjs/operators';
+import { from, Subject, Observable, of, fromEvent, BehaviorSubject } from 'rxjs';
+import { switchMap, tap, takeUntil, shareReplay, mergeMap, toArray, catchError, map, take } from 'rxjs/operators';
 import { MapCommonService } from '../../services/map-common.service';
 import { MapInitModel, LayerSettingChangeModel, LayerLabelChangeModel, ExecuteIdentifyTaskResult, LooseObject } from '../../models/map-model.model';
 import { MapUrlDirective } from './directives/map-url.directive';
@@ -27,7 +27,14 @@ interface MapCompUiConfig {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
-  @Input() sceneView = false;
+
+  private readonly sceneView$ = new BehaviorSubject<boolean>(true);
+  @Input() set sceneView(input: boolean) {
+    this.sceneView$.next(input);
+  }
+  get sceneView() {
+    return this.sceneView$.value;
+  }
   @Output() readonly loaded = new EventEmitter<MapInitModel>();
   @Output() readonly isLoading = new EventEmitter<boolean>();
   @Output() readonly toolChange = new EventEmitter<availableToolNames>();
@@ -43,6 +50,7 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
   private mapInitModel: MapInitModel;
 
   readonly initMap$: Observable<MapInitModel> = this.mapCommonService.loadEsriBaseScript$.pipe(
+    switchMap(e => this.sceneView$),
     switchMap(e => this.mapCommonService.loadModules('esri/Map', 'esri/views/MapView', 'esri/views/SceneView', 'esri/core/watchUtils')),
     switchMap(([Map, MapView, SceneView, watchUtils]) => {
       this.clearStaticText();
@@ -50,7 +58,9 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
         basemap: 'topo-vector'
       });
 
-      // this.sceneView = false;
+      if (this.mapInitModel) {
+        this.removeOldMap();
+      }
 
       this.mapInitModel = new MapInitModel();
       if (this.sceneView) {
@@ -87,6 +97,7 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
     takeUntil(this.isDestroyed$),
     shareReplay(1)
   );
+
   mapScale: number;
 
   readonly uiConfig: MapCompUiConfig = {
@@ -429,6 +440,11 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
     this.uiConfig.bottomPanel.height = bottomPanelHeight;
     if (this.bottomPanelElement) {
       this.bottomPanelElement.nativeElement.style.height = `${bottomPanelHeight}px`;
+    }
+  }
+  private removeOldMap() {
+    if (this.mapInitModel?.map) {
+      this.mapInitModel.map.destroy();
     }
   }
 }

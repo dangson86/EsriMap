@@ -1,4 +1,5 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
+import { MapViewComponent } from 'esri-map';
 
 @Component({
   selector: 'app-test-map',
@@ -6,7 +7,7 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
   styleUrls: ['./test-map.component.scss']
 })
 export class TestMapComponent implements OnInit {
-
+  @ViewChild(MapViewComponent) mapComponent: MapViewComponent;
   urls = [];
 
   testMaps = [
@@ -16,7 +17,7 @@ export class TestMapComponent implements OnInit {
     { id: 'test4', url: 'https://epic.ensiteusa.com/arcgis/rest/services/DS/LearnOptiRoute2/MapServer' },
     { id: 'test5', url: 'https://epic.ensiteusa.com/arcgis/rest/services/DS/LearnOptiRoute/MapServer' }
   ];
-
+  sceneView = false;
   defaultUrl = this.testMaps[0].url;
   constructor(private cdr: ChangeDetectorRef) { }
 
@@ -30,5 +31,7 @@ export class TestMapComponent implements OnInit {
   }
   addMoreMap(testMap) {
     this.urls.push(testMap);
+  }
+  onMapChange(event) {
   }
 }
