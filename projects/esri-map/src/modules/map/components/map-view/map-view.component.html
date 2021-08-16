@@ -44,10 +44,10 @@
                         <mat-icon class="functionBtn">not_listed_location</mat-icon>
                     </button>
                 </div>
-                <div class="toc-func" [class.activedTool]="uiConfig.leftMenuTools.selectedTool === 'unknowTool'">
-                    <button class="toc-btn" mat-icon-button color="primary" title="toggle layer identify tool"
-                        (click)="activateTool('unknowTool')">
-                        <mat-icon class="functionBtn">edit_attributes</mat-icon>
+                <div class="toc-func" [class.activedTool]="uiConfig.leftMenuTools.selectedTool === 'drawTool'">
+                    <button class="toc-btn" mat-icon-button color="primary" title="toggle layer sketch tool"
+                        (click)="activateTool('drawTool')">
+                        <mat-icon class="functionBtn">legend_toggle</mat-icon>
                     </button>
                 </div>
             </div>
@@ -100,3 +100,5 @@
         </div>
     </div>
 </div>
+<appMapSketch *ngIf="uiConfig.leftMenuTools.selectedTool === 'drawTool'" (drawCompleted)="onDrawCompleted($event)">
+</appMapSketch>

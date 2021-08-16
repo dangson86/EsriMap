@@ -14,13 +14,15 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { CommonDirectiveModule } from '../share/common-directive.module';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MapSketchDirective } from './components/map-view/directives/map-sketch.directive';
 
 
 @NgModule({
   declarations: [
     MapViewComponent,
     MapUrlDirective,
-    MapTocUIComponent
+    MapTocUIComponent,
+    MapSketchDirective
   ],
   imports: [
     CommonModule,

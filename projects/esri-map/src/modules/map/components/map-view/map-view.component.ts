@@ -7,7 +7,8 @@ import { MapUrlDirective } from './directives/map-url.directive';
 import esri = __esri; // Esri TypeScript Types
 import { MapTocUIComponent } from '../map-toc-ui/map-toc-ui.component';
 
-declare type availableToolNames = 'identifyTool' | 'zoomIn' | 'zoomOut' | 'unknowTool' | 'noSelectTool';
+
+declare type leftMemuToolNames = 'identifyTool' | 'zoomIn' | 'zoomOut' | 'unknowTool' | 'noSelectTool' | 'drawTool';
 interface MapCompUiConfig {
   showTocPannel: boolean;
   showBottomPannel: boolean;
@@ -15,7 +16,7 @@ interface MapCompUiConfig {
     height: number,
   };
   leftMenuTools: {
-    selectedTool: availableToolNames
+    selectedTool: leftMemuToolNames
   };
 }
 
@@ -37,7 +38,7 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
   }
   @Output() readonly loaded = new EventEmitter<MapInitModel>();
   @Output() readonly isLoading = new EventEmitter<boolean>();
-  @Output() readonly toolChange = new EventEmitter<availableToolNames>();
+  @Output() readonly toolChange = new EventEmitter<leftMemuToolNames>();
   @Output() readonly mapClick = new EventEmitter<esri.geometry.Point>();
   @Output() readonly identifyReturn = new EventEmitter<ExecuteIdentifyTaskResult[]>();
 
@@ -48,7 +49,8 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
 
   private readonly isDestroyed$ = new Subject<any>();
   private mapInitModel: MapInitModel;
-
+  get mapInstance() { return this.mapInitModel.map; }
+  get mapView() { return this.mapInitModel.mapView; }
   readonly initMap$: Observable<MapInitModel> = this.mapCommonService.loadEsriBaseScript$.pipe(
     switchMap(e => this.sceneView$),
     switchMap(e => this.mapCommonService.loadModules('esri/Map', 'esri/views/MapView', 'esri/views/SceneView', 'esri/core/watchUtils')),
@@ -132,10 +134,10 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
     this.initMap();
   }
   onLefPanelResize(mouseDown: MouseEvent, leftPanel: any) {
-    var currentValue = leftPanel.clientWidth;
-    this.elRef.nativeElement.style.cursor = "col-resize"
-    var target = mouseDown.target as any;
-    target.style.cursor = "col-resize"
+    const currentValue = leftPanel.clientWidth;
+    this.elRef.nativeElement.style.cursor = 'col-resize';
+    const target = mouseDown.target as any;
+    target.style.cursor = 'col-resize';
     this.hostMouseMove$.pipe(
       tap(e => {
         const ratio = e.clientX - mouseDown.clientX;
@@ -144,22 +146,22 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
       }),
       takeUntil(this.hostMouseUp$.pipe(
         tap(() => {
-          this.elRef.nativeElement.style.cursor = "unset";
-          target.style.cursor = "pointer";
+          this.elRef.nativeElement.style.cursor = 'unset';
+          target.style.cursor = 'pointer';
         }))),
     ).subscribe();
   }
   ngOnDestroy(): void {
     this.isDestroyed$.next();
   }
-  activateTool(toolName: availableToolNames) {
+  activateTool(toolName: leftMemuToolNames) {
     if (this.uiConfig.leftMenuTools.selectedTool !== toolName) {
       this.uiConfig.leftMenuTools.selectedTool = toolName;
     } else {
       this.uiConfig.leftMenuTools.selectedTool = 'noSelectTool';
-
-      this.resetDrawToolAction();
+      this.resetAllTools();
     }
+
     this.toolChange.emit(this.uiConfig.leftMenuTools.selectedTool);
     switch (this.uiConfig.leftMenuTools.selectedTool) {
       case 'identifyTool':
@@ -209,11 +211,12 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
             this.identifyReturn.emit(e);
           }),
         ).subscribe(e => { });
-
         break;
       case 'zoomIn':
         break;
       case 'zoomOut':
+        break;
+      case 'drawTool':
         break;
       default:
         break;
@@ -222,8 +225,14 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
   private resetDrawToolAction() {
     const drawAction = this.mapInitModel.mapTools.draw.activeAction;
     if (drawAction) {
-      this.mapInitModel.mapTools.draw.reset();
+      // this.mapInitModel.mapTools.draw.reset();
+      this.mapInitModel.mapTools.draw.complete();
+      console.log("reset");
     }
+  }
+  private resetAllTools() {
+    this.resetDrawToolAction();
+    this.cdr.markForCheck();
   }
 
   toggleLeftMenu() {
@@ -278,10 +287,10 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
 
   removeLayer(layerId: string, layerUrl: string) {
     if (this.mapInitModel && this.mapInitModel.map) {
-      const map = this.mapInitModel.map;
-      const oldLayer = map.findLayerById(layerId) as esri.MapImageLayer;
+      const mapInstance = this.mapInitModel.map;
+      const oldLayer = mapInstance.findLayerById(layerId) as esri.MapImageLayer;
       if (oldLayer) {
-        map.remove(oldLayer);
+        mapInstance.remove(oldLayer);
       }
     }
   }
@@ -322,13 +331,18 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
   onBottomPanelResize(event: DragEvent) {
     this.hostMouseMove$.pipe(
       tap(e => {
-        var hostClientHeight = this.elRef.nativeElement.clientHeight;
+        const hostClientHeight = this.elRef.nativeElement.clientHeight;
         const ratio = hostClientHeight - e.clientY;
         this.setBottomPanelHeight(ratio);
       }),
       takeUntil(this.hostMouseUp$),
     ).subscribe();
   }
+
+  onDrawCompleted(event) {
+    console.log(event);
+  }
+
   private findSubLayer(mapUrl: string, layerId: number[]): esri.Sublayer[] {
     const mapSettings = this.layerUrlList.filter(e => e.url === mapUrl);
     if (mapSettings.length > 0) {
@@ -351,22 +365,14 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
       )
       )).subscribe();
   }
-  // private attachClickEvent() {
-  //   if (this.mapInitModel.events.click == null) {
-  //     this.mapInitModel.events.click = this.mapInitModel.mapView.on('click', e => {
-  //       this.mapClick.emit(e.mapPoint);
-  //     });
-  //   }
-  // }
+
   private drawIdentifyRectangle(): Observable<esri.Geometry> {
     return this.initMap$.pipe(
       switchMap(mapModel => this.mapCommonService.loadModules('esri/geometry/Polygon', 'esri/Graphic').pipe(
         switchMap(([Polygon, Graphic]) => {
           const view = mapModel.mapView;
           view.focus();
-          let drawAction = mapModel.mapTools.draw.activeAction;
-
-          drawAction = mapModel.mapTools.draw.create('rectangle');
+          const drawAction = mapModel.mapTools.draw.activeAction = mapModel.mapTools.draw.create('rectangle');
           const sp = mapModel.mapView.spatialReference;
           const graphics = mapModel.mapView.graphics;
           // fires when the pointer moves
@@ -408,6 +414,7 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
 
             result.next(polygon.extent);
             result.complete();
+            console.log(`dddddddddddd`);
           });
 
           return result;
@@ -416,14 +423,6 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
     );
   }
 
-  // private measureLine(vertices) {
-  //   this.mapInitModel.mapView.graphics.removeAll();
-
-  //   var line = createLine(vertices);
-  //   var lineLength = geometryEngine.geodesicLength(line, "miles");
-  //   var graphic = createGraphic(line);
-  //   view.graphics.add(graphic);
-  // }
   private clearSelectedTool() {
     this.uiConfig.leftMenuTools.selectedTool = 'noSelectTool';
   }
