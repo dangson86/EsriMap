@@ -58,7 +58,7 @@ export class MapUrlDirective implements OnInit, OnChanges {
       })
     ))
   );
-  private readonly isDestroyed$ = new Subject();
+  private readonly isDestroyed$ = new Subject<void>();
 
   constructor(private el: ElementRef, private mapCommonService: MapCommonService, private host: MapViewComponent) {
   }

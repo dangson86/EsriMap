@@ -17,7 +17,7 @@ export class KeyEventDirective implements OnInit, OnDestroy {
     private readonly keyUpEvent$: Observable<KeyboardEvent>;
 
     private keyPressEvent$: Observable<any>;
-    private isDestroy$ = new Subject();
+    private isDestroy$ = new Subject<void>();
     constructor(private elementRef: ElementRef) {
         this.keyDownEvent$ = fromEvent<KeyboardEvent>(this.elementRef.nativeElement, 'keydown').pipe(
             tap(e => {

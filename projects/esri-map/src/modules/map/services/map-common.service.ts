@@ -31,7 +31,7 @@ export class MapCommonService {
                     url: mapUrl
                 });
                 return from(newImagelayer.loadAll()).pipe(
-                    map(mapLayer => {
+                    map((mapLayer: any) => {
                         return mapLayer.sublayers.toArray();
                     })
                 );
@@ -42,7 +42,7 @@ export class MapCommonService {
     executeIdentifyTask(url: string, viewWidth: number, viewHeight: number, layerIds: number[], mapExtent: esri.Extent, geometry: esri.Geometry, tolerance = 3, returnGeometry = false): Observable<ExecuteIdentifyTaskResult> {
         return this.loadModules('esri/tasks/IdentifyTask', 'esri/tasks/support/IdentifyParameters').pipe(
             switchMap(([IdentifyTask, IdentifyParameters]) => {
-                const identifyTask: esri.IdentifyTask = new IdentifyTask(url);
+                const identifyTask: any = new IdentifyTask(url);
                 const params: esri.IdentifyParameters = new IdentifyParameters();
                 params.tolerance = tolerance;
                 params.width = viewWidth;
@@ -53,7 +53,7 @@ export class MapCommonService {
                 params.geometry = geometry;
                 params.layerOption = 'visible';
                 return from(identifyTask.execute(params)).pipe(
-                    map(e => {
+                    map((e: any) => {
                         const results = e.results as esri.IdentifyResult[];
                         const groupByResult: { [key: string]: esri.IdentifyResult[] } = results.reduce((acc, curr) => (acc[curr.layerId] = [...acc[curr.layerId] || [], curr]) && acc, {});
                         const layerResults = [];

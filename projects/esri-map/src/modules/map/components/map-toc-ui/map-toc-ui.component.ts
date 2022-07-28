@@ -33,7 +33,7 @@ export class MapTocUIComponent implements OnInit, OnDestroy {
     hideLegend: false
   };
   isloading = false;
-  private readonly isDestroyed$ = new Subject();
+  private readonly isDestroyed$ = new Subject<void>();
 
   readonly mapUrl$ = new BehaviorSubject<string>(null);
   readonly mapScale$ = new Subject<number>();

@@ -47,7 +47,7 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
   @ContentChildren(MapUrlDirective) layerUrlList!: QueryList<MapUrlDirective>;
   @ViewChildren(MapTocUIComponent) tocComponents: QueryList<MapTocUIComponent>;
 
-  private readonly isDestroyed$ = new Subject<any>();
+  private readonly isDestroyed$ = new Subject<void>();
   private mapInitModel: MapInitModel;
   get mapInstance() { return this.mapInitModel.map; }
   get mapView() { return this.mapInitModel.mapView; }
