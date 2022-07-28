@@ -11,11 +11,11 @@ export class TestMapComponent implements OnInit {
   urls = [];
 
   testMaps = [
-    { id: 'test1', url: 'https://epic.ensiteusa.com/arcgis/rest/services/DS/ParcelTestData/MapServer' },
-    { id: 'test2', url: 'https://epic.ensiteusa.com/arcgis/rest/services/DS/pipeTallyGpsTest/MapServer' },
-    { id: 'test3', url: 'https://epic.ensiteusa.com/arcgis/rest/services/DS/OptiRouteTest/MapServer' },
-    { id: 'test4', url: 'https://epic.ensiteusa.com/arcgis/rest/services/DS/LearnOptiRoute2/MapServer' },
-    { id: 'test5', url: 'https://epic.ensiteusa.com/arcgis/rest/services/DS/LearnOptiRoute/MapServer' }
+    { id: 'test1', url: 'https://epic.ensiteusa.com/arcgis/rest/services/DS/DemoClient_Dalas_oil/MapServer' },
+    { id: 'test2', url: 'https://epic.ensiteusa.com/arcgis/rest/services/DS/EngineeringMarkup/MapServer' },
+    { id: 'test3', url: 'https://epic.ensiteusa.com/arcgis/rest/services/DS/LearnOptiRoute2/MapServer' },
+    { id: 'test4', url: 'https://epic.ensiteusa.com/arcgis/rest/services/DS/LearnOptiRoute/MapServer' },
+    { id: 'test5', url: 'https://epic.ensiteusa.com/arcgis/rest/services/DS/pipeTallyGpsTest/MapServer' }
   ];
   sceneView = false;
   defaultUrl = this.testMaps[0].url;
