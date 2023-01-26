@@ -30,7 +30,13 @@ export class TestMapComponent implements OnInit {
     this.defaultUrl = input;
   }
   addMoreMap(testMap) {
-    this.urls.push(testMap);
+    if (testMap) {
+      this.urls.push({
+        id: `test ${this.urls.length}`,
+        url: testMap
+      });
+    }
+
   }
   onMapChange(event) {
   }

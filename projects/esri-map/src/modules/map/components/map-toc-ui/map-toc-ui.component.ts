@@ -10,7 +10,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { MapViewComponent } from '../map-view/map-view.component';
 
 
-interface Sublayer2 extends esri.Sublayer {
+interface SublayerTree extends esri.Sublayer {
   hasLegends: boolean;
   hasLabel: boolean;
   hasQuery: boolean;
@@ -18,7 +18,8 @@ interface Sublayer2 extends esri.Sublayer {
   checked: boolean;
   isGroupLayer: boolean;
   legends: apiModel.MapLegendDetail[];
-  subLayers: Sublayer2[];
+  subLayers: SublayerTree[];
+  showLegendImage: boolean;
 }
 
 
@@ -30,9 +31,7 @@ interface Sublayer2 extends esri.Sublayer {
 })
 export class MapTocUIComponent implements OnInit, OnDestroy {
 
-  readonly configs = {
-    hideLegend: false
-  };
+
   isloading = false;
   private readonly isDestroyed$ = new Subject<void>();
 
@@ -40,7 +39,7 @@ export class MapTocUIComponent implements OnInit, OnDestroy {
   readonly mapScale$ = new Subject<number>();
   readonly mapSubLayers$ = this.mapUrl$.pipe(
     switchMap(url => this.mapCommonService.getSublayersInfo(url)),
-    map(e => e as Sublayer2[])
+    map(e => e as SublayerTree[])
   );
   readonly mapInfo$ = this.mapUrl$.pipe(
     filter(e => e != null),
@@ -56,11 +55,11 @@ export class MapTocUIComponent implements OnInit, OnDestroy {
     takeUntil(this.isDestroyed$),
     shareReplay(1),
   );
+
   readonly tocLayerTree$ = combineLatest([this.mapSubLayers$, this.mapLegends$]).pipe(
     switchMap(([subLayers, legends]) => from(subLayers).pipe(
       tap(subLayer => {
-        subLayer.legends = legends.find(e => e.layerId === subLayer.id)?.legend || [];
-        this.buildTree2(subLayer);
+        this.buildTree2(subLayer, legends);
         return of(subLayer);
       }),
       toArray(),
@@ -95,10 +94,10 @@ export class MapTocUIComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
 
   }
-  showHideLayerLegend() {
-    this.configs.hideLegend = !this.configs.hideLegend;
+  showHideLayerLegend(layer: SublayerTree) {
+    layer.showLegendImage = !layer.showLegendImage;
   }
-  onLayerSelectChange(event: MatCheckboxChange, layer: Sublayer2, mapInfo: LooseObject, layers: Sublayer2[], keyPress: string) {
+  onLayerSelectChange(event: MatCheckboxChange, layer: SublayerTree, mapInfo: LooseObject, layers: SublayerTree[], keyPress: string) {
     let visible = event.checked;
     let layerid = [layer.id];
     if (keyPress === 'Control') {
@@ -140,7 +139,7 @@ export class MapTocUIComponent implements OnInit, OnDestroy {
       layerid,
     });
   }
-  toggleLabel(infoDetail: Sublayer2) {
+  toggleLabel(infoDetail: SublayerTree) {
     infoDetail.labelsVisible = !infoDetail.labelsVisible;
     this.layerLabelChange.emit({
       mapUrl: this.mapUrl$.value,
@@ -179,21 +178,24 @@ export class MapTocUIComponent implements OnInit, OnDestroy {
     }
   }
 
-  private buildTree2(subLayer: Sublayer2) {
-    if (subLayer) {
-      subLayer.subLayers = subLayer.sublayers?.toArray() as Sublayer2[];
-      subLayer.isGroupLayer = subLayer.sublayers === null ? false : true;
-      subLayer.checked = subLayer.visible;
-      subLayer.hasLabel = subLayer.labelingInfo != null;
-      subLayer.hasQuery = subLayer.layer.capabilities.operations.supportsQuery;
-      subLayer.identifiable = true;
-      subLayer.hasLegends = subLayer.legends?.length > 0;
-      if (subLayer.hasLegends) {
-        subLayer.legends.forEach(l => {
+  private buildTree2(layer: SublayerTree, legends: apiModel.MapLegend[]) {
+    if (layer) {
+      layer.subLayers = layer.sublayers?.toArray() as SublayerTree[];
+      layer.isGroupLayer = layer.sublayers === null ? false : true;
+      layer.checked = layer.visible;
+      layer.hasLabel = layer.labelingInfo != null;
+      layer.hasQuery = layer.layer.capabilities.operations.supportsQuery;
+      layer.identifiable = true;
+      layer.legends = legends.find(e => e.layerId == layer.id)?.legend || [];
+      layer.hasLegends = layer.legends?.length > 0;
+      layer.showLegendImage = true;
+      if (layer.hasLegends) {
+
+        layer.legends.forEach(l => {
           l.base64Image = this.domSanitizer.bypassSecurityTrustResourceUrl(`data:${l.contentType};base64, ${l.imageData}`);
         });
       }
-      subLayer.subLayers?.forEach(e => this.buildTree2(e));
+      layer.subLayers?.forEach(e => this.buildTree2(e, legends));
     }
   }
 }
