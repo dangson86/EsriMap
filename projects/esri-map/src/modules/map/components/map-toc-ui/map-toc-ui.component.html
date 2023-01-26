@@ -3,7 +3,13 @@
         <mat-expansion-panel expanded="true" class="expansionPanel">
             <mat-expansion-panel-header>
                 <mat-panel-title>
-                    <label title="Map Name" class="mapName">{{mapInfo?.mapName}}</label>
+                    <div>
+                        <label title="Map Name" class="mapName">{{mapInfo?.mapName}}</label>
+                        <button mat-icon-button (click)="zoomToMapLayer($event, mapInfo)" title="Zoom to full extent">
+                            <mat-icon>map</mat-icon>
+                        </button>
+                    </div>
+
                 </mat-panel-title>
             </mat-expansion-panel-header>
             <ng-container *ngIf="tocLayerTree$ | async as layerInfosTree">
@@ -18,31 +24,24 @@
     </mat-accordion>
 </div>
 
-<ng-template #layerTemplate let-layer="layer" let-layers="layers" let-index="index" let-keyEvent="keyEvent"
-    let-mapInfo="mapInfo">
+<ng-template #layerTemplate let-layer="layer" let-layers="layers" let-index="index" let-keyEvent="keyEvent" let-mapInfo="mapInfo">
     <div class="layerDiv">
-        <mat-checkbox
-            (change)="onLayerSelectChange($event, layer, mapInfo,layers, keyEvent.isPress?keyEvent.selectedKey:null)"
-            [(ngModel)]="layer.checked">
+        <mat-checkbox (change)="onLayerSelectChange($event, layer, mapInfo,layers, keyEvent.isPress?keyEvent.selectedKey:null)" [(ngModel)]="layer.checked">
         </mat-checkbox>
         <span>{{layer?.title}}</span>
         <ng-container>
             <span class="layerFunctions">
-                <button class="functionBtn toggleable" [class.active]="layer.labelsVisible" title="toggle label"
-                    mat-icon-button *ngIf="layer.checked && layer.hasLabel" (click)="toggleLabel(layer)">
+                <button class="functionBtn toggleable" [class.active]="layer.labelsVisible" title="toggle label" mat-icon-button *ngIf="layer.checked && layer.hasLabel" (click)="toggleLabel(layer)">
                     <mat-icon class="functionBtn">label</mat-icon>
                 </button>
-                <button class="functionBtn toggleable" [class.active]="layer.identifiable"
-                    title="toggle layer identify tool" mat-icon-button *ngIf="layer.checked && layer.hasQuery"
+                <button class="functionBtn toggleable" [class.active]="layer.identifiable" title="toggle layer identify tool" mat-icon-button *ngIf="layer.checked && layer.hasQuery"
                     (click)="layer.identifiable = !layer.identifiable">
                     <mat-icon class="functionBtn">not_listed_location</mat-icon>
                 </button>
-                <mat-icon class="legend-expansion-indicator" [class.hide]="configs.hideLegend"
-                    (click)="showHideLayerLegend()">expand_less</mat-icon>
+                <mat-icon class="legend-expansion-indicator" [class.hide]="configs.hideLegend" (click)="showHideLayerLegend()">expand_less</mat-icon>
 
             </span>
-            <div class="legendDiv animated" [class.hide]="configs.hideLegend" [class.show]="!configs.hideLegend"
-                *ngIf="layer.checked && layer.hasLegends">
+            <div class="legendDiv animated" [class.hide]="configs.hideLegend" [class.show]="!configs.hideLegend" *ngIf="layer.checked && layer.hasLegends">
                 <ng-container *ngTemplateOutlet="layerLegend; context:{$implicit:layer}">
                 </ng-container>
             </div>
@@ -58,8 +57,7 @@
 <ng-template #groupLayerTemplate let-layers="layers" let-mapInfo="mapInfo">
     <div #keyEvent=keyEventDirective keyevent [keys]="['Alt','Control']" [tabindex]="tocIndex" style="outline: 0;">
         <ng-container *ngFor="let layer of layers; let index=index">
-            <ng-container
-                *ngTemplateOutlet="layerTemplate; context:{layer:layer, layers:layers, mapInfo:mapInfo, index:index, keyEvent:keyEvent}">
+            <ng-container *ngTemplateOutlet="layerTemplate; context:{layer:layer, layers:layers, mapInfo:mapInfo, index:index, keyEvent:keyEvent}">
             </ng-container>
         </ng-container>
     </div>

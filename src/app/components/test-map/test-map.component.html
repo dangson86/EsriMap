@@ -5,8 +5,7 @@
         <button *ngFor="let test of testMaps;let index = index" (click)="setUrl(test.url)">url {{index}}</button>
 
         <div>
-            <input #mapUrlInput type="text" style="width: 100%;"
-                value="https://epic.ensiteusa.com/arcgis/rest/services/DS/LearnOptiRoute2/MapServer" />
+            <input #mapUrlInput type="text" style="width: 100%;" value="https://epic.ensiteusa.com/arcgis/rest/services/DS/LearnOptiRoute2/MapServer" />
             <button (click)="addMoreMap(mapUrlInput.value)">add map</button>
         </div>
 

@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, Output, EventEmitter, OnDestroy } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, OnDestroy, Optional } from '@angular/core';
 import { MapCommonService } from '../../services/map-common.service';
 import { switchMap, map, tap, filter, shareReplay, take, toArray, takeUntil } from 'rxjs/operators';
 import { of, Observable, BehaviorSubject, Subject, from, combineLatest } from 'rxjs';
@@ -7,6 +7,7 @@ import esri = __esri; // Esri TypeScript Types
 import { MatCheckboxChange } from '@angular/material/checkbox';
 import { LooseObject, LayerSettingChangeModel, LayerLabelChangeModel } from '../../models/map-model.model';
 import { DomSanitizer } from '@angular/platform-browser';
+import { MapViewComponent } from '../map-view/map-view.component';
 
 
 interface Sublayer2 extends esri.Sublayer {
@@ -85,7 +86,7 @@ export class MapTocUIComponent implements OnInit, OnDestroy {
   @Output() layerVisibleChange = new EventEmitter<LayerSettingChangeModel>();
   @Output() layerLabelChange = new EventEmitter<LayerLabelChangeModel>();
 
-  constructor(private mapCommonService: MapCommonService, private domSanitizer: DomSanitizer) { }
+  constructor(private mapCommonService: MapCommonService, private domSanitizer: DomSanitizer, @Optional() private mapComponent: MapViewComponent) { }
   ngOnDestroy(): void {
     this.isDestroyed$.next();
     this.isDestroyed$.complete();
@@ -168,6 +169,14 @@ export class MapTocUIComponent implements OnInit, OnDestroy {
     return this.tocLayerTree$.pipe(
       take(1),
     );
+  }
+  zoomToMapLayer($event, mapInfo) {
+    $event.preventDefault();
+    $event.stopPropagation();
+    let fullExtent = mapInfo?.fullExtent;
+    if (this.mapComponent && fullExtent) {
+      this.mapComponent.zoomToExtent(fullExtent).subscribe();
+    }
   }
 
   private buildTree2(subLayer: Sublayer2) {
