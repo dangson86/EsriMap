@@ -1,4 +1,4 @@
-:host{
+:host {
     height: 100%;
     width: 100%;
     position: relative;
@@ -6,40 +6,47 @@
     display: flex;
     flex-direction: column;
 }
-.mapView{
+
+.mapView {
     width: 100%;
     height: 100%;
 }
-.mapAndToc{
+
+.mapAndToc {
     width: 100%;
     height: 100%;
-    flex:auto;
+    flex: auto;
     position: relative;
 }
-.toc-wrapper{
+
+.toc-wrapper {
     position: absolute;
     top: 0;
     height: 100%;
     width: 25%;
     margin-top: 5px;
-    &.hide{
+
+    &.hide {
         animation: hideLeftPanel forwards ease-in 0.7s;
     }
-    &.show{
+
+    &.show {
         animation: showLeftPanel forwards ease-out 0.7s;
     }
+
     @keyframes showLeftPanel {
-        0%{
-            width: 0;
-        }
-    }
-    @keyframes hideLeftPanel {
-        100%{
+        0% {
             width: 0;
         }
     }
 
-    .tocDiv{
+    @keyframes hideLeftPanel {
+        100% {
+            width: 0;
+        }
+    }
+
+    .tocDiv {
         width: calc(100% - 10px);
         max-height: calc(100% - 10px);
         min-height: 51px;
@@ -49,7 +56,8 @@
         border: 1px solid #80808078;
         padding: 3px;
     }
-    .toc-menu{
+
+    .toc-menu {
         position: absolute;
         top: 0;
         right: -50px;
@@ -61,25 +69,27 @@
     }
 }
 
-.mapToc{
+.mapToc {
     height: auto;
     max-height: 100%;
     overflow: auto;
     width: 100%;
-    background-color: beige; 
+    background-color: beige;
     position: relative;
     width: 25%;
 }
-.toc-menu{
+
+.toc-menu {
     top: 0;
     position: absolute;
 }
 
-.tab-group{
+.tab-group {
     background-color: white;
     max-height: 95%;
     min-height: 51px;
-    .tabDiv{
+
+    .tabDiv {
         width: calc(100% - 10px);
         max-height: calc(100% - 10px);
         min-height: 51px;
@@ -94,44 +104,54 @@
 }
 
 
-.toggle-tools{
-    .activedTool{
+.toggle-tools {
+    .activedTool {
         position: relative;
-        &:before{
+
+        &:before {
             content: " ";
             border-left: 4px solid #0088ff;
             position: absolute;
             height: 100%;
         }
-        
-        
-        button{
+
+
+        button {
             color: #0088ff;
         }
     }
 }
 
 
-.bottom-pannel-wrapper{
+.bottom-pannel-wrapper {
     width: 99%;
-    flex:0 0 auto;
+    flex: 0 0 auto;
     margin: auto;
     position: relative;
     background-color: white;
     margin-top: 8px;
-    &.showBottomPanel{
+
+    &.showBottomPanel {
         transition: height 1s;
     }
-    &.hideBottomPanel{
+
+    &.hideBottomPanel {
         transition: height 1s;
         height: 0px !important;
     }
-    .panel-content{
+
+    .panel-content {
         width: 100%;
         height: 100%;
         overflow: auto;
+
+        .feature-layer-name {
+            border: 1px solid red;
+            vertical-align: top;
+        }
     }
-    .expand-bar{
+
+    .expand-bar {
         position: absolute;
         height: 8px;
         width: 100%;
@@ -139,15 +159,18 @@
         top: -9px;
         left: 0px;
         border-bottom: 1px solid #0079c1;
-        .expand-buttons{
+
+        .expand-buttons {
             position: absolute;
             top: -8px;
             right: 50%;
-            .expand-btn{
+
+            .expand-btn {
                 display: inline-block;
                 margin-left: 3px;
                 position: relative;
-                &.resizebar{
+
+                &.resizebar {
                     cursor: row-resize;
                     border: 1.5px solid #4a4a4a;
                     width: 22px;
@@ -155,7 +178,8 @@
                     left: -31px;
                     position: absolute;
                 }
-                &.collapsebtn{
+
+                &.collapsebtn {
                     cursor: pointer;
                 }
             }
@@ -172,6 +196,7 @@
     position: absolute;
     top: 0;
     z-index: 9;
+
     .sliderBar {
         display: block;
         position: absolute;
@@ -218,31 +243,44 @@
 }
 
 
-.mapIsLoading.toc-btn{
+.mapIsLoading.toc-btn {
     background: linear-gradient(274deg, #78edcf, #71415f, #9a9faf, #b050b3, #bcc4eb, #575bb1);
     background-size: 1200% 1200%;
-    animation:  colorChange2 9s ease infinite;
+    animation: colorChange2 9s ease infinite;
 }
 
 
 @keyframes colorChange2 {
-    0%{background-position:0% 10%}
-    50%{background-position:100% 91%}
-    100%{background-position:0% 10%}
+    0% {
+        background-position: 0% 10%
+    }
+
+    50% {
+        background-position: 100% 91%
+    }
+
+    100% {
+        background-position: 0% 10%
+    }
 }
 
-.feature-table{
-    .col-title{
+.feature-table {
+    width: 100%;
+    min-height: 200px;
+    min-width: 600px;
+
+    .col-title {
         color: #71415f;
     }
-    .feature-row{
-        .feature-value{
+
+    .feature-row {
+        .feature-value {
             color: #71415f;
         }
     }
 }
 
-.leftmenuResizeBtn{
+.leftmenuResizeBtn {
     color: #3f51b5;
     display: inline-block;
     cursor: pointer;

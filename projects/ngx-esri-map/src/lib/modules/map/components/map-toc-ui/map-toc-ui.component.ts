@@ -182,17 +182,35 @@ export class MapTocUIComponent implements OnInit, OnDestroy {
   getIdentifiableLayerIds(): Observable<{ id: number, fields: Field[] }[]> {
     return this.tocLayerTree$.pipe(
       take(1),
-      switchMap(layers => from(layers).pipe(
-        filter(layerInfo => layerInfo.identifiable && layerInfo.hasQuery && layerInfo.checked),
-        map(e => {
+      map(layers => {
+        let list = this.traverseTree(layers, e => e.identifiable && e.hasQuery && e.checked, e => e.subLayers);
+        return list.map(e => {
           return {
             id: e.id,
+            name: e.title,
             fields: e.fields
           };
-        })
-      )),
-      toArray()
+        });
+      }),
     );
+  }
+
+  private traverseTree<T>(items: T[], filterLogic: (item: T) => boolean, getChildren: (item: T) => T[]): T[] {
+    let list: T[] = [];
+    if (items) {
+      items.forEach(item => {
+        if (filterLogic(item)) {
+          list.push(item);
+          let children = getChildren(item);
+          if (children) {
+            children.forEach(cItem => {
+              list.push(cItem);
+            });
+          }
+        }
+      });
+    }
+    return list;
   }
 
   getSubLayers(): Observable<Sublayer[]> {

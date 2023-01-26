@@ -18,7 +18,7 @@ import Geometry from "@arcgis/core/geometry/Geometry";
 import Graphic from "@arcgis/core/Graphic";
 import Polygon from "@arcgis/core/geometry/Polygon";
 import Symbol from "@arcgis/core/symbols/Symbol";
-import FillSymbol from "@arcgis/core/symbols/FillSymbol";
+import SimpleFillSymbol from "@arcgis/core/symbols/SimpleFillSymbol";
 
 
 declare type leftMemuToolNames = 'identifyTool' | 'zoomIn' | 'zoomOut' | 'unknowTool' | 'noSelectTool' | 'drawTool';
@@ -177,52 +177,7 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
     this.toolChange.emit(this.uiConfig.leftMenuTools.selectedTool);
     switch (this.uiConfig.leftMenuTools.selectedTool) {
       case 'identifyTool':
-        this.drawIdentifyRectangle().pipe(
-          tap(e => {
-            this.isLoading.next(true);
-          }),
-          switchMap(geometry => from(this.tocComponents.map(e => e)).pipe(
-            mergeMap(toc => {
-              const view = this.mapInitModel.mapView;
-              return toc.getIdentifiableLayerIds().pipe(
-                mergeMap(layers => {
-                  const defaultValue = of<ExecuteIdentifyTaskResult>(null);
-                  const layerIds = layers?.map(e => e.id);
-                  if (layerIds && layerIds.length > 0) {
-                    return this.mapCommonService.executeIdentifyTask(toc.url, view.width, view.height, layerIds, view.extent, geometry).pipe(
-                      tap(taskResult => {
-                        taskResult?.layerResults.forEach((layerResult: LooseObject) => {
-                          layerResult.fields = layers.find(f => f.id === layerResult.layerId)?.fields;
-                        });
-                      }),
-                      catchError(error => {
-                        console.error(error);
-                        return defaultValue;
-                      })
-                    );
-                  }
-                  return defaultValue;
-                })
-              );
-            }),
-            toArray()
-          )),
-          map(e => {
-            this.identifyResults = null;
-            if (e && e.length > 0) {
-              this.identifyResults = e.filter(f => f !== null);
-              if (this.identifyResults.length > 0) {
-                this.uiConfig.showBottomPannel = true;
-              }
-            }
-            return this.identifyResults;
-          }),
-          tap(e => {
-            this.clearSelectedTool();
-            this.isLoading.next(false);
-            this.identifyReturn.emit(e);
-          }),
-        ).subscribe(e => { });
+        this.activateIdentifyTool();
         break;
       case 'zoomIn':
         break;
@@ -233,6 +188,56 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
       default:
         break;
     }
+  }
+  private activateIdentifyTool() {
+    this.drawIdentifyRectangle().pipe(
+      tap(e => {
+        this.isLoading.next(true);
+      }),
+      switchMap(geometry => from(this.tocComponents.map(e => e)).pipe(
+        mergeMap(toc => {
+          const view = this.mapInitModel.mapView;
+          return toc.getIdentifiableLayerIds().pipe(
+            mergeMap(layers => {
+              const defaultValue = of<ExecuteIdentifyTaskResult>(null);
+              const layerIds = layers?.map(e => e.id);
+              if (layerIds && layerIds.length > 0) {
+                return this.mapCommonService.executeIdentifyTask(toc.url, view.width, view.height, layerIds, view.extent, geometry).pipe(
+                  tap(taskResult => {
+                    taskResult?.layerResults.forEach((layerResult: LooseObject) => {
+                      layerResult.fields = layers.find(f => f.id === layerResult.layerId)?.fields;
+                    });
+                  }),
+                  catchError(error => {
+                    console.error(error);
+                    return defaultValue;
+                  })
+                );
+              }
+              return defaultValue;
+            })
+          );
+        }),
+        toArray()
+      )),
+      map(e => {
+        this.identifyResults = null;
+        if (e && e.length > 0) {
+          this.identifyResults = e.filter(f => f !== null);
+          if (this.identifyResults.length > 0) {
+            this.uiConfig.showBottomPannel = true;
+          }
+        }
+        return this.identifyResults;
+      }),
+      tap(e => {
+        this.clearSelectedTool();
+        this.isLoading.next(false);
+        this.identifyReturn.emit(e);
+      }),
+    ).subscribe(e => {
+      console.log(e);
+    });
   }
   private resetDrawToolAction() {
     const drawAction = this.mapInitModel.mapTools.draw.activeAction;
@@ -385,15 +390,15 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
         const sp = mapModel.mapView.spatialReference;
         const graphics = mapModel.mapView.graphics;
 
-        const customSymbol: Symbol = new FillSymbol({
+        const customSymbol = {
           type: 'simple-fill',  // autocasts as new SimpleFillSymbol()
-          color: [51, 51, 204, 0.9],
+          // color: [51, 51, 204, 0.9],
           outline: {  // autocasts as new SimpleLineSymbol()
             color: '#ff4081',
             width: 1,
             style: 'short-dash'
           }
-        });
+        };
 
         drawAction.on('cursor-update', (evt) => {
           const polygon: Polygon = new Polygon({
