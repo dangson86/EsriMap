@@ -4,8 +4,22 @@ import { switchMap, tap, takeUntil, shareReplay, mergeMap, toArray, catchError, 
 import { MapCommonService } from '../../services/map-common.service';
 import { MapInitModel, LayerSettingChangeModel, LayerLabelChangeModel, ExecuteIdentifyTaskResult, LooseObject } from '../../models/map-model.model';
 import { MapUrlDirective } from './directives/map-url.directive';
-import esri = __esri; // Esri TypeScript Types
 import { MapTocUIComponent } from '../map-toc-ui/map-toc-ui.component';
+import Point from "@arcgis/core/geometry/Point";
+import Map from "@arcgis/core/Map";
+import SceneView from "@arcgis/core/views/SceneView";
+import MapView from "@arcgis/core/views/MapView";
+import LayerView from "@arcgis/core/views/layers/LayerView";
+import MapImageLayer from "@arcgis/core/layers/MapImageLayer";
+import Extent from "@arcgis/core/geometry/Extent";
+import Sublayer from "@arcgis/core/layers/support/Sublayer";
+import Draw from "@arcgis/core/views/draw/Draw";
+import Geometry from "@arcgis/core/geometry/Geometry";
+import * as geometry from "@arcgis/core/geometry";
+import Graphic from "@arcgis/core/Graphic";
+import Polygon from "@arcgis/core/geometry/Polygon";
+import Symbol from "@arcgis/core/symbols/Symbol";
+import FillSymbol from "@arcgis/core/symbols/FillSymbol";
 
 
 declare type leftMemuToolNames = 'identifyTool' | 'zoomIn' | 'zoomOut' | 'unknowTool' | 'noSelectTool' | 'drawTool';
@@ -39,7 +53,7 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
   @Output() readonly loaded = new EventEmitter<MapInitModel>();
   @Output() readonly isLoading = new EventEmitter<boolean>();
   @Output() readonly toolChange = new EventEmitter<leftMemuToolNames>();
-  @Output() readonly mapClick = new EventEmitter<esri.geometry.Point>();
+  @Output() readonly mapClick = new EventEmitter<Point>();
   @Output() readonly identifyReturn = new EventEmitter<ExecuteIdentifyTaskResult[]>();
 
   @ViewChild('mapView', { static: true }) mapViewElement: ElementRef;
@@ -51,12 +65,11 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
   private mapInitModel: MapInitModel;
   get mapInstance() { return this.mapInitModel.map; }
   get mapView() { return this.mapInitModel.mapView; }
-  readonly initMap$: Observable<MapInitModel> = this.mapCommonService.loadEsriBaseScript$.pipe(
-    switchMap(e => this.sceneView$),
-    switchMap(e => this.mapCommonService.loadModules('esri/Map', 'esri/views/MapView', 'esri/views/SceneView', 'esri/core/watchUtils')),
-    switchMap(([Map, MapView, SceneView, watchUtils]) => {
+  readonly initMap$: Observable<MapInitModel> = of(true).pipe(
+    // switchMap(e => this.mapCommonService.loadModules('esri/Map', 'esri/views/MapView', 'esri/views/SceneView', 'esri/core/watchUtils')),
+    switchMap((e) => {
       this.clearStaticText();
-      const newMap: esri.Map = new Map({
+      const newMap: Map = new Map({
         basemap: 'topo-vector'
       });
 
@@ -66,7 +79,7 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
 
       this.mapInitModel = new MapInitModel();
       if (this.sceneView) {
-        const tempView: esri.SceneView = new SceneView({
+        const tempView: SceneView = new SceneView({
           container: this.mapViewElement.nativeElement,
           map: newMap,
           center: [-95.437389, 29.763206],
@@ -75,7 +88,7 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
         this.mapInitModel.mapView = tempView;
 
       } else {
-        const tempView: esri.MapView = new MapView({
+        const tempView: MapView = new MapView({
           container: this.mapViewElement.nativeElement,
           map: newMap,
           center: [-95.437389, 29.763206],
@@ -242,61 +255,59 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
   toggleBottomPanel() {
     this.uiConfig.showBottomPannel = !this.uiConfig.showBottomPannel;
   }
-  addLayer(layerId: string, layerUrl: string): Observable<esri.LayerView> {
+  addLayer(layerId: string, layerUrl: string): Observable<LayerView> {
     return this.initMap$.pipe(
-      switchMap(mapModel => this.mapCommonService.loadModules('esri/layers/MapImageLayer').pipe(
-        switchMap(([MapImageLayer]) => {
-          this.isLoading.next(true);
-          const oldLayer = mapModel.map.findLayerById(layerId) as esri.MapImageLayer;
-          let isAdded = false;
-          if (oldLayer) {
-            if (oldLayer.id === layerId && oldLayer.url === layerUrl) {
-              isAdded = true;
-            } else {
-              mapModel.map.remove(oldLayer);
-            }
-          }
-
-          if (isAdded) {
-            return from(mapModel.mapView.whenLayerView(oldLayer)).pipe(
-              tap(e => {
-                this.isLoading.next(false);
-              })
-            );
+      switchMap((mapModel) => {
+        this.isLoading.next(true);
+        const oldLayer = mapModel.map.findLayerById(layerId) as MapImageLayer;
+        let isAdded = false;
+        if (oldLayer) {
+          if (oldLayer.id === layerId && oldLayer.url === layerUrl) {
+            isAdded = true;
           } else {
-            const newImagelayer: esri.MapImageLayer = new MapImageLayer({
-              id: layerId,
-              url: layerUrl
-            });
-
-            mapModel.map.add(newImagelayer);  // adds the layer to the map
-            const onView = mapModel.mapView.whenLayerView(newImagelayer);
-            return from(onView).pipe(
-              tap(e => {
-                this.isLoading.next(false);
-              }),
-              catchError(error => {
-                console.error(`fail to add layer ${layerId} ${layerUrl}`, error);
-                return of(null);
-              })
-            );
+            mapModel.map.remove(oldLayer);
           }
-        })
-      ))
+        }
+
+        if (isAdded) {
+          return from(mapModel.mapView.whenLayerView(oldLayer)).pipe(
+            tap(e => {
+              this.isLoading.next(false);
+            })
+          );
+        } else {
+          const newImagelayer: MapImageLayer = new MapImageLayer({
+            id: layerId,
+            url: layerUrl
+          });
+
+          mapModel.map.add(newImagelayer);  // adds the layer to the map
+          const onView = mapModel.mapView.whenLayerView(newImagelayer);
+          return from(onView).pipe(
+            tap(e => {
+              this.isLoading.next(false);
+            }),
+            catchError(error => {
+              console.error(`fail to add layer ${layerId} ${layerUrl}`, error);
+              return of(null);
+            })
+          );
+        }
+      })
     );
   }
 
   removeLayer(layerId: string, layerUrl: string) {
     if (this.mapInitModel && this.mapInitModel.map) {
       const mapInstance = this.mapInitModel.map;
-      const oldLayer = mapInstance.findLayerById(layerId) as esri.MapImageLayer;
+      const oldLayer = mapInstance.findLayerById(layerId) as MapImageLayer;
       if (oldLayer) {
         mapInstance.remove(oldLayer);
       }
     }
   }
 
-  zoomToExtent(fullExtent: esri.Extent) {
+  zoomToExtent(fullExtent: Extent) {
     return this.initMap$.pipe(
       switchMap(mapModel => {
         const view = mapModel.mapView;
@@ -344,10 +355,10 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
     console.log(event);
   }
 
-  private findSubLayer(mapUrl: string, layerId: number[]): esri.Sublayer[] {
+  private findSubLayer(mapUrl: string, layerId: number[]): Sublayer[] {
     const mapSetting = this.layerUrlList.find(e => e.url === mapUrl);
     if (mapSetting) {
-      const mapImageLayer = this.mapInitModel.map.findLayerById(mapSetting.id) as esri.MapImageLayer;
+      const mapImageLayer = this.mapInitModel.map.findLayerById(mapSetting.id) as MapImageLayer;
       if (mapImageLayer) {
         return layerId.map(id => mapImageLayer.findSublayerById(id));
       }
@@ -356,71 +367,65 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
   }
   private initMap() {
     this.initMap$.pipe(
-      switchMap(mapModel => this.mapCommonService.loadModules('esri/views/draw/Draw').pipe(
-        tap(([Draw]) => {
-          const draw: esri.Draw = new Draw({
+      tap(mapModel => {
+        if (mapModel.mapView instanceof MapView) {
+          const draw: Draw = new Draw({
             view: mapModel.mapView
           });
           mapModel.mapTools.draw = draw;
-        })
-      )
-      )).subscribe();
+        }
+      })
+    ).subscribe();
   }
 
-  private drawIdentifyRectangle(): Observable<esri.Geometry> {
+  private drawIdentifyRectangle(): Observable<Geometry> {
     return this.initMap$.pipe(
-      switchMap(mapModel => this.mapCommonService.loadModules('esri/geometry/Polygon', 'esri/Graphic').pipe(
-        switchMap(([Polygon, Graphic]) => {
-          const view = mapModel.mapView;
-          view.focus();
-          const drawAction = mapModel.mapTools.draw.activeAction = mapModel.mapTools.draw.create('rectangle');
-          const sp = mapModel.mapView.spatialReference;
-          const graphics = mapModel.mapView.graphics;
-          // fires when the pointer moves
+      switchMap(mapModel => {
+        const view = mapModel.mapView;
+        view.focus();
+        const drawAction = mapModel.mapTools.draw.activeAction = mapModel.mapTools.draw.create('rectangle');
+        const sp = mapModel.mapView.spatialReference;
+        const graphics = mapModel.mapView.graphics;
 
-          const customSymbol = {
-            type: 'simple-fill',  // autocasts as new SimpleFillSymbol()
-            // color: [51, 51, 204, 0.9],
-            style: 'none',
-            outline: {  // autocasts as new SimpleLineSymbol()
-              color: '#ff4081',
-              width: 1,
-              style: 'short-dash'
-            }
-          };
+        const customSymbol: Symbol = new FillSymbol({
+          type: 'simple-fill',  // autocasts as new SimpleFillSymbol()
+          color: [51, 51, 204, 0.9],
+          outline: {  // autocasts as new SimpleLineSymbol()
+            color: '#ff4081',
+            width: 1,
+            style: 'short-dash'
+          }
+        });
 
-          drawAction.on('cursor-update', (evt) => {
-            const polygon: esri.Polygon = new Polygon({
-              rings: evt.vertices,
-              spatialReference: sp
-            });
-            graphics.removeAll();
+        drawAction.on('cursor-update', (evt) => {
+          const polygon: Polygon = new Polygon({
+            rings: evt.vertices,
+            spatialReference: sp
+          });
+          graphics.removeAll();
 
-            const graphic: esri.Graphic = new Graphic({
-              geometry: polygon.extent,
-              symbol: customSymbol,
-              attributes: null
-            });
-            graphics.add(graphic);
+          const graphic: Graphic = new Graphic({
+            geometry: polygon.extent,
+            symbol: customSymbol as any,
+            attributes: null
+          });
+          graphics.add(graphic);
+        });
+
+        const result = new Subject<Extent>();
+        // fires when the drawing is completed
+        drawAction.on('draw-complete', (evt) => {
+          graphics.removeAll();
+          const polygon: Polygon = new Polygon({
+            rings: evt.vertices,
+            spatialReference: sp
           });
 
-          const result = new Subject<esri.Extent>();
-          // fires when the drawing is completed
-          drawAction.on('draw-complete', (evt) => {
-            graphics.removeAll();
-            const polygon: esri.Polygon = new Polygon({
-              rings: evt.vertices,
-              spatialReference: sp
-            });
-
-            result.next(polygon.extent);
-            result.complete();
-            console.log(`dddddddddddd`);
-          });
-
-          return result;
-        })
-      )),
+          result.next(polygon.extent);
+          result.complete();
+        });
+        return result;
+      })
     );
   }
 

@@ -3,14 +3,15 @@ import { MapCommonService } from '../../services/map-common.service';
 import { switchMap, map, tap, filter, shareReplay, take, toArray, takeUntil, debounceTime } from 'rxjs/operators';
 import { of, Observable, BehaviorSubject, Subject, from, combineLatest } from 'rxjs';
 import * as apiModel from '../../models/api-request.models';
-import esri = __esri; // Esri TypeScript Types
 import { MatCheckboxChange } from '@angular/material/checkbox';
 import { LooseObject, LayerSettingChangeModel, LayerLabelChangeModel } from '../../models/map-model.model';
 import { DomSanitizer } from '@angular/platform-browser';
 import { MapViewComponent } from '../map-view/map-view.component';
+import Sublayer from "@arcgis/core/layers/support/Sublayer";
+import Field from "@arcgis/core/layers/support/Field";
 
 
-interface SublayerTree extends esri.Sublayer {
+interface SublayerTree extends Sublayer {
   hasLegends: boolean;
   hasLabel: boolean;
   hasQuery: boolean;
@@ -178,7 +179,7 @@ export class MapTocUIComponent implements OnInit, OnDestroy {
     });
   }
 
-  getIdentifiableLayerIds(): Observable<{ id: number, fields: esri.Field[] }[]> {
+  getIdentifiableLayerIds(): Observable<{ id: number, fields: Field[] }[]> {
     return this.tocLayerTree$.pipe(
       take(1),
       switchMap(layers => from(layers).pipe(
@@ -194,7 +195,7 @@ export class MapTocUIComponent implements OnInit, OnDestroy {
     );
   }
 
-  getSubLayers(): Observable<esri.Sublayer[]> {
+  getSubLayers(): Observable<Sublayer[]> {
     return this.tocLayerTree$.pipe(
       take(1),
     );

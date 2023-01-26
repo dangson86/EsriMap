@@ -4,6 +4,7 @@ import { catchError, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { MapInitModel } from '../../../models/map-model.model';
 import { MapCommonService } from '../../../services/map-common.service';
 import { MapViewComponent } from '../map-view.component';
+import MapImageLayer from "@arcgis/core/layers/MapImageLayer";
 
 @Directive({
   selector: 'map-url',
@@ -13,7 +14,7 @@ export class MapUrlDirective implements OnInit, OnChanges {
 
   @Output() readonly urlChange = new EventEmitter<MapUrlDirective>();
 
-  private mapLayer: __esri.MapImageLayer;
+  private mapLayer: MapImageLayer;
   private _url = null;
   @Input() set url(input: string) {
     this.inputUrl.next(input);
@@ -49,7 +50,7 @@ export class MapUrlDirective implements OnInit, OnChanges {
         if (id && url) {
           return this.host.addLayer(id, url).pipe(
             tap(e => {
-              this.mapLayer = e.layer as __esri.MapImageLayer;
+              this.mapLayer = e.layer as MapImageLayer;
             }),
             switchMap(view => this.zoomToOnAdd ? this.host.zoomToExtent(view.layer.fullExtent).pipe(map(e => view)) : of(null)),
             catchError(error => {
