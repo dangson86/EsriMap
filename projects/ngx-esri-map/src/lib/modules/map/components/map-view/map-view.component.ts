@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild, ElementRef, OnDestroy, Output, EventEmitter, ContentChildren, AfterContentInit, QueryList, Input, ViewChildren, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { from, Subject, Observable, of, fromEvent, BehaviorSubject } from 'rxjs';
-import { switchMap, tap, takeUntil, shareReplay, mergeMap, toArray, catchError, map, take } from 'rxjs/operators';
+import { switchMap, tap, takeUntil, shareReplay, mergeMap, toArray, catchError, map, take, finalize } from 'rxjs/operators';
 import { MapCommonService } from '../../services/map-common.service';
 import { MapInitModel, LayerSettingChangeModel, LayerLabelChangeModel, ExecuteIdentifyTaskResult, LooseObject } from '../../models/map-model.model';
 import { MapUrlDirective } from './directives/map-url.directive';
@@ -282,12 +282,12 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
           mapModel.map.add(newImagelayer);  // adds the layer to the map
           const onView = mapModel.mapView.whenLayerView(newImagelayer);
           return from(onView).pipe(
-            tap(e => {
+            finalize(() => {
               this.isLoading.next(false);
             }),
             catchError(error => {
               console.error(`fail to add layer ${layerId} ${layerUrl}`, error);
-              return of(null);
+              throw error;
             })
           );
         }

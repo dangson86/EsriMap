@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
-import { MapViewComponent } from 'esri-map';
+import { MapViewComponent } from 'ngx-esri-map';
 
 @Component({
   selector: 'app-test-map',

@@ -21,6 +21,9 @@
         // "dist/esri-map/esri-map",
         // "dist/esri-map",
         "projects/esri-map/src/public-api"
+      ],
+      "ngx-esri-map": [
+        "dist/ngx-esri-map"
       ]
     },
     "typeRoots": [

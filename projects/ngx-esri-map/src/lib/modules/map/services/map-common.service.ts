@@ -32,7 +32,6 @@ export class MapCommonService {
 
 
     constructor() {
-
     }
 
     getUrljsonInfo(url: string) {
