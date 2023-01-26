@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, Output, EventEmitter, OnDestroy, Optional } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, OnDestroy, Optional, ChangeDetectorRef } from '@angular/core';
 import { MapCommonService } from '../../services/map-common.service';
 import { switchMap, map, tap, filter, shareReplay, take, toArray, takeUntil } from 'rxjs/operators';
 import { of, Observable, BehaviorSubject, Subject, from, combineLatest } from 'rxjs';
@@ -85,7 +85,7 @@ export class MapTocUIComponent implements OnInit, OnDestroy {
   @Output() layerVisibleChange = new EventEmitter<LayerSettingChangeModel>();
   @Output() layerLabelChange = new EventEmitter<LayerLabelChangeModel>();
 
-  constructor(private mapCommonService: MapCommonService, private domSanitizer: DomSanitizer, @Optional() private mapComponent: MapViewComponent) { }
+  constructor(private mapCommonService: MapCommonService, private domSanitizer: DomSanitizer, @Optional() private mapComponent: MapViewComponent, private changeRef: ChangeDetectorRef) { }
   ngOnDestroy(): void {
     this.isDestroyed$.next();
     this.isDestroyed$.complete();
@@ -99,44 +99,42 @@ export class MapTocUIComponent implements OnInit, OnDestroy {
   }
   onLayerSelectChange(event: MatCheckboxChange, layer: SublayerTree, mapInfo: LooseObject, layers: SublayerTree[], keyPress: string) {
     let visible = event.checked;
-    let layerid = [layer.id];
+    let layerIds = [layer.id];
     if (keyPress === 'Control') {
       // select all or turn off all
-      layerid = layers.map(e => e.id);
-      setTimeout(() => {
-        layers.forEach(e => {
-          e.checked = visible;
-        });
-      }, 0);
+      layerIds = layers.map(e => e.id);
+      layers.forEach(e => {
+        e.checked = visible;
+      });
 
     } else if (keyPress === 'Alt') {
       // close all but select
       // turn off all other layers
-      setTimeout(() => {
-        const offLayers = layers.map(e => e.id).filter(e => e !== layer.id);
-        layers.forEach(e => {
-          if (offLayers.indexOf(e.id) !== -1) {
-            e.checked = false;
-          }
-        });
 
-        this.layerVisibleChange.emit({
-          mapUrl: this.mapUrl$.value,
-          visible: false,
-          layerid: offLayers,
-        });
-        // set layer check
-        layer.checked = true;
-      }, 0);
+      const offLayers = layers.map(e => e.id).filter(e => e !== layer.id);
+      layers.forEach(e => {
+        if (offLayers.indexOf(e.id) !== -1) {
+          e.checked = false;
+        }
+      });
+
+      this.layerVisibleChange.emit({
+        mapUrl: this.mapUrl$.value,
+        visible: false,
+        layerid: offLayers,
+      });
+      // set layer check
+      layer.checked = true;
 
       // if alt is press visible is alway true
       visible = true;
     }
 
+    this.changeRef.markForCheck();
     this.layerVisibleChange.emit({
       mapUrl: this.mapUrl$.value,
       visible,
-      layerid,
+      layerid: layerIds,
     });
   }
   toggleLabel(infoDetail: SublayerTree) {

@@ -28,6 +28,10 @@ export class MapUrlDirective implements OnInit, OnChanges {
     this.inputId.next(input);
     this._id = input;
   }
+  get id() {
+    return this._id;
+  }
+
   @Input() zoomToOnAdd = true;
 
   readonly inputUrl = new ReplaySubject<string>(1);

@@ -344,9 +344,9 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
   }
 
   private findSubLayer(mapUrl: string, layerId: number[]): esri.Sublayer[] {
-    const mapSettings = this.layerUrlList.filter(e => e.url === mapUrl);
-    if (mapSettings.length > 0) {
-      const mapImageLayer = this.mapInitModel.map.findLayerById(mapSettings[0].id) as esri.MapImageLayer;
+    const mapSetting = this.layerUrlList.find(e => e.url === mapUrl);
+    if (mapSetting) {
+      const mapImageLayer = this.mapInitModel.map.findLayerById(mapSetting.id) as esri.MapImageLayer;
       if (mapImageLayer) {
         return layerId.map(id => mapImageLayer.findSublayerById(id));
       }
