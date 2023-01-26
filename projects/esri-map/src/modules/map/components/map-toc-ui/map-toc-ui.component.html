@@ -28,7 +28,7 @@
     <div class="layerDiv">
         <mat-checkbox (change)="onLayerSelectChange($event, layer, mapInfo,layers, keyEvent.isPress?keyEvent.selectedKey:null)" [(ngModel)]="layer.checked">
         </mat-checkbox>
-        <span>{{layer?.title}}</span>
+        <span class="layerTitle" [ngClass]="{'isInViewScale' : layer.isInViewScale, 'outOfViewScale' : !layer.isInViewScale}">{{layer?.title}} </span>
         <ng-container>
             <span class="layerFunctions">
                 <button class="functionBtn toggleable" [class.active]="layer.labelsVisible" title="toggle label" mat-icon-button *ngIf="layer.checked && layer.hasLabel" (click)="toggleLabel(layer)">

@@ -1,6 +1,6 @@
 import { Component, OnInit, Input, Output, EventEmitter, OnDestroy, Optional, ChangeDetectorRef } from '@angular/core';
 import { MapCommonService } from '../../services/map-common.service';
-import { switchMap, map, tap, filter, shareReplay, take, toArray, takeUntil } from 'rxjs/operators';
+import { switchMap, map, tap, filter, shareReplay, take, toArray, takeUntil, debounceTime } from 'rxjs/operators';
 import { of, Observable, BehaviorSubject, Subject, from, combineLatest } from 'rxjs';
 import * as apiModel from '../../models/api-request.models';
 import esri = __esri; // Esri TypeScript Types
@@ -20,6 +20,7 @@ interface SublayerTree extends esri.Sublayer {
   legends: apiModel.MapLegendDetail[];
   subLayers: SublayerTree[];
   showLegendImage: boolean;
+  isInViewScale: boolean;
 }
 
 
@@ -73,7 +74,10 @@ export class MapTocUIComponent implements OnInit, OnDestroy {
   @Input() tocIndex = 0;
   @Input() set mapScale(input: number) {
     this.mapScale$.next(input);
+    this.temp = input;
   }
+
+  temp: number;
 
   @Input() set url(input: string) {
     this.mapUrl$.next(input);
@@ -92,8 +96,36 @@ export class MapTocUIComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-
+    this.mapScale$.pipe(
+      debounceTime(500),
+      switchMap(scale => this.tocLayerTree$.pipe(
+        take(1),
+        map(treeItems => {
+          return {
+            scale: scale,
+            treeItems: treeItems
+          }
+        })
+      )),
+      takeUntil(this.isDestroyed$)
+    ).subscribe({
+      next: ({ scale, treeItems }) => {
+        this.checkToSeeIfLayerIsWithinDisplayScale(scale, treeItems);
+        this.changeRef.markForCheck();
+      }
+    });
   }
+
+  private checkToSeeIfLayerIsWithinDisplayScale(scale: number, treeItems: SublayerTree[]) {
+    if (treeItems) {
+      treeItems.forEach(item => {
+        item.isInViewScale = (item.minScale == 0 ? Number.MAX_VALUE : item.minScale) >= scale && scale >= (item.maxScale == 0 ? 0 : item.maxScale);
+        this.checkToSeeIfLayerIsWithinDisplayScale(scale, item.subLayers);
+      });
+    }
+  }
+
+
   showHideLayerLegend(layer: SublayerTree) {
     layer.showLegendImage = !layer.showLegendImage;
   }

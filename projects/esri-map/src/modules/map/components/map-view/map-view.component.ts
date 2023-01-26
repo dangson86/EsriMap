@@ -88,6 +88,7 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
 
       view.watch('scale', e => {
         this.mapScale = e;
+        this.cdr.markForCheck();
       });
 
       this.mapInitModel.map = newMap;
