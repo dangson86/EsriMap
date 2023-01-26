@@ -15,7 +15,6 @@ import Extent from "@arcgis/core/geometry/Extent";
 import Sublayer from "@arcgis/core/layers/support/Sublayer";
 import Draw from "@arcgis/core/views/draw/Draw";
 import Geometry from "@arcgis/core/geometry/Geometry";
-import * as geometry from "@arcgis/core/geometry";
 import Graphic from "@arcgis/core/Graphic";
 import Polygon from "@arcgis/core/geometry/Polygon";
 import Symbol from "@arcgis/core/symbols/Symbol";
@@ -65,8 +64,7 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
   private mapInitModel: MapInitModel;
   get mapInstance() { return this.mapInitModel.map; }
   get mapView() { return this.mapInitModel.mapView; }
-  readonly initMap$: Observable<MapInitModel> = of(true).pipe(
-    // switchMap(e => this.mapCommonService.loadModules('esri/Map', 'esri/views/MapView', 'esri/views/SceneView', 'esri/core/watchUtils')),
+  readonly initMap$: Observable<MapInitModel> = this.mapCommonService.loadEsriBaseScript$.pipe(
     switchMap((e) => {
       this.clearStaticText();
       const newMap: Map = new Map({

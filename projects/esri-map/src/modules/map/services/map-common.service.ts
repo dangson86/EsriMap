@@ -9,15 +9,31 @@ import MapImageLayer from "@arcgis/core/layers/MapImageLayer";
 import esriRequest from "@arcgis/core/request";
 import IdentifyParameters from '@arcgis/core/rest/support/IdentifyParameters';
 import IdentifyResult from '@arcgis/core/rest/support/IdentifyResult';
-import { Observable, from, of, map } from 'rxjs';
+import { Observable, from, of, map, shareReplay } from 'rxjs';
 import { LooseObject, ExecuteIdentifyTaskResult } from '../models/map-model.model';
 import * as projection from "@arcgis/core/geometry/projection";
 import * as identify from "@arcgis/core/rest/identify";
+
+import { loadCss } from 'esri-loader';
+
 
 @Injectable()
 export class MapCommonService {
 
     private readonly GEOMETRY_SERVICE_URL = 'https://utility.arcgisonline.com/ArcGIS/rest/services/Geometry/GeometryServer';
+    private readonly version = "4.25";
+    get cssCdn() {
+        return `https://js.arcgis.com/${this.version}/@arcgis/core/assets/esri/themes/light/main.css`;
+    }
+
+    readonly loadEsriBaseScript$ = of(loadCss(this.cssCdn)).pipe(
+        shareReplay(1)
+    );
+
+
+    constructor() {
+
+    }
 
     getUrljsonInfo(url: string) {
         return this.esriRequest(url, { query: { f: 'json' }, responseType: 'json' }).pipe(

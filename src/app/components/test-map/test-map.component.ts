@@ -31,10 +31,14 @@ export class TestMapComponent implements OnInit {
   }
   addMoreMap(testMap) {
     if (testMap) {
-      this.urls.push({
-        id: `test ${this.urls.length}`,
-        url: testMap
-      });
+      if (testMap instanceof Object) {
+        this.urls.push(testMap);
+      } else {
+        this.urls.push({
+          id: `test ${this.urls.length}`,
+          url: testMap
+        });
+      }
     }
 
   }

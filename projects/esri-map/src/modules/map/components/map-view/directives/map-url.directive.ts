@@ -1,6 +1,5 @@
 import { Component, OnInit, Input, Directive, ContentChild, AfterContentInit, ElementRef, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
-import { combineLatest, of, ReplaySubject, Subject } from 'rxjs';
-import { catchError, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { catchError, combineLatest, filter, map, of, ReplaySubject, Subject, switchMap, takeUntil, tap } from 'rxjs';
 import { MapInitModel } from '../../../models/map-model.model';
 import { MapCommonService } from '../../../services/map-common.service';
 import { MapViewComponent } from '../map-view.component';
@@ -49,6 +48,7 @@ export class MapUrlDirective implements OnInit, OnChanges {
       switchMap(([id, url]) => {
         if (id && url) {
           return this.host.addLayer(id, url).pipe(
+            filter(e => e != null),
             tap(e => {
               this.mapLayer = e.layer as MapImageLayer;
             }),
@@ -63,6 +63,7 @@ export class MapUrlDirective implements OnInit, OnChanges {
       })
     ))
   );
+
   private readonly isDestroyed$ = new Subject<void>();
 
   constructor(private el: ElementRef, private mapCommonService: MapCommonService, private host: MapViewComponent) {
