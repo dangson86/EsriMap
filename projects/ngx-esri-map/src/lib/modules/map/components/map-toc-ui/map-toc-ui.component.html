@@ -36,7 +36,7 @@
                 </button>
                 <button class="functionBtn toggleable" [class.active]="layer.identifiable" title="toggle layer identify tool" mat-icon-button *ngIf="layer.checked && layer.hasQuery"
                     (click)="layer.identifiable = !layer.identifiable">
-                    <mat-icon class="functionBtn">not_listed_location</mat-icon>
+                    <i class="fa-solid fa-circle-info"></i>
                 </button>
                 <mat-icon class="legend-expansion-indicator" [class.hide]="!layer.showLegendImage" (click)="showHideLayerLegend(layer)" *ngIf="layer.checked && layer.hasLegends">expand_less</mat-icon>
 
