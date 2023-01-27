@@ -33,32 +33,28 @@
         <div class="toc-menu" style="opacity: 1;">
             <div class="toc-func">
                 <button class="toc-btn" mat-icon-button color="primary" (click)="toggleLeftMenu()" [class.mapIsLoading]="isLoading | async">
-                    <mat-icon>dashboard</mat-icon>
+                    <i class="fa-solid fa-bars"></i>
                 </button>
             </div>
 
             <div class="toggle-tools">
                 <div class="toc-func" [class.activedTool]="uiConfig.leftMenuTools.selectedTool === 'identifyTool'">
                     <button class="toc-btn" mat-icon-button color="primary" title="toggle layer identify tool" (click)="activateTool('identifyTool')">
-                        <mat-icon class="functionBtn">not_listed_location</mat-icon>
+                        <i class="fa-solid fa-circle-info"></i>
                     </button>
                 </div>
                 <div class="toc-func" [class.activedTool]="uiConfig.leftMenuTools.selectedTool === 'drawTool'">
                     <button class="toc-btn" mat-icon-button color="primary" title="toggle layer sketch tool" (click)="activateTool('drawTool')">
-                        <mat-icon class="functionBtn">legend_toggle</mat-icon>
+                        <i class="functionBtn" class="fa-solid fa-pen-ruler"></i>
                     </button>
                 </div>
             </div>
 
-            <div class="toc-func">
-                <button class="toc-btn" mat-icon-button color="primary">
-                    <mat-icon>list</mat-icon>
-                </button>
-            </div>
+
 
             <div class="toc-func" style="text-align: center;">
                 <span class="toc-btn leftmenuResizeBtn" (mousedown)="onLefPanelResize($event,tocWrapper)">
-                    <mat-icon title="re-size">drag_indicator</mat-icon>
+                    <i class="fa-solid fa-left-right"></i>
                 </span>
             </div>
 
