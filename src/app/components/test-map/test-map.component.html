@@ -38,8 +38,11 @@
     <map-view [sceneView]="sceneView" (loaded)="onmapLoaded($event)" #map [authToken]="token">
         <map-url [id]="'my test default'" [url]="defaultUrl"> </map-url>
 
-        <ng-container *ngFor="let test of urls; let index = index">
-            <map-url [id]="test.id" [url]="test.url"> </map-url>
-        </ng-container>
+        <map-url *ngFor="let test of urls; let index = index" [id]="test.id" [url]="test.url"> </map-url>
+
+        <ng-template featureTemplate let-data="data" let-fields="fields">
+            dsfsdfasdf
+        </ng-template>
     </map-view>
+
 </div>

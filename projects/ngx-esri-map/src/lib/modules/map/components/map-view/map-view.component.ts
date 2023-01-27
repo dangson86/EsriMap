@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef, OnDestroy, Output, EventEmitter, ContentChildren, AfterContentInit, QueryList, Input, ViewChildren, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, OnDestroy, Output, EventEmitter, ContentChildren, AfterContentInit, QueryList, Input, ViewChildren, ChangeDetectionStrategy, ChangeDetectorRef, Optional, ContentChild } from '@angular/core';
 import { from, Subject, Observable, of, fromEvent, BehaviorSubject } from 'rxjs';
 import { switchMap, tap, takeUntil, shareReplay, mergeMap, toArray, catchError, map, take, finalize } from 'rxjs/operators';
 import { MapCommonService } from '../../services/map-common.service';
@@ -17,6 +17,7 @@ import Draw from "@arcgis/core/views/draw/Draw";
 import Geometry from "@arcgis/core/geometry/Geometry";
 import Graphic from "@arcgis/core/Graphic";
 import Polygon from "@arcgis/core/geometry/Polygon";
+import { FeatureTemplateDirective } from './directives/feature-template.directive';
 
 
 
@@ -62,6 +63,7 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
   @ViewChild('mapView', { static: true }) mapViewElement: ElementRef;
   @ViewChild('leftmenuResizeBtn', { static: true }) leftMenuResizeBtn: ElementRef;
   @ContentChildren(MapUrlDirective) layerUrlList!: QueryList<MapUrlDirective>;
+  @ContentChild(FeatureTemplateDirective) featureTemplate!: FeatureTemplateDirective;
   @ViewChildren(MapTocUIComponent) tocComponents: QueryList<MapTocUIComponent>;
 
   private readonly isDestroyed$ = new Subject<void>();
@@ -148,6 +150,7 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
       }),
       takeUntil(this.isDestroyed$)
     ).subscribe();
+    console.log(this.featureTemplate);
   }
 
   ngOnInit(): void {
