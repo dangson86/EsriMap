@@ -210,11 +210,13 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
       case 'zoomOut':
         break;
       case 'drawTool':
+        this.resetDrawToolAction();
         break;
       default:
         break;
     }
   }
+
   private activateIdentifyTool() {
     this.drawIdentifyRectangle().pipe(
       tap(e => {
@@ -268,9 +270,7 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
   private resetDrawToolAction() {
     const drawAction = this.mapInitModel.mapTools.draw.activeAction;
     if (drawAction) {
-      // this.mapInitModel.mapTools.draw.reset();
-      this.mapInitModel.mapTools.draw.complete();
-      console.log("reset");
+      this.mapInitModel.mapTools.draw.destroy();
     }
   }
   private resetAllTools() {
