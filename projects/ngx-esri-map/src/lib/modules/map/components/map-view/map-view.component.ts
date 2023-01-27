@@ -17,8 +17,7 @@ import Draw from "@arcgis/core/views/draw/Draw";
 import Geometry from "@arcgis/core/geometry/Geometry";
 import Graphic from "@arcgis/core/Graphic";
 import Polygon from "@arcgis/core/geometry/Polygon";
-import Symbol from "@arcgis/core/symbols/Symbol";
-import SimpleFillSymbol from "@arcgis/core/symbols/SimpleFillSymbol";
+
 
 
 declare type leftMemuToolNames = 'identifyTool' | 'zoomIn' | 'zoomOut' | 'unknowTool' | 'noSelectTool' | 'drawTool';
@@ -42,6 +41,7 @@ interface MapCompUiConfig {
 })
 export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
 
+
   private readonly sceneView$ = new BehaviorSubject<boolean>(true);
   @Input() set sceneView(input: boolean) {
     this.sceneView$.next(input);
@@ -49,6 +49,10 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
   get sceneView() {
     return this.sceneView$.value;
   }
+  @Input() set authToken(input: string) {
+    this.setAuthToken(input);
+  }
+
   @Output() readonly loaded = new EventEmitter<MapInitModel>();
   @Output() readonly isLoading = new EventEmitter<boolean>();
   @Output() readonly toolChange = new EventEmitter<leftMemuToolNames>();
@@ -131,7 +135,11 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
   constructor(private mapCommonService: MapCommonService, private elRef: ElementRef, private cdr: ChangeDetectorRef) {
 
   }
-
+  setAuthToken(authToken: string) {
+    if (authToken) {
+      this.mapCommonService.registerAuthToken(authToken, "https://epic.ensiteusa.com/arcgis/rest/services");
+    }
+  }
   ngAfterContentInit(): void {
     this.initConfig();
     this.layerUrlList.changes.pipe(
@@ -262,13 +270,15 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
     return this.initMap$.pipe(
       switchMap((mapModel) => {
         this.isLoading.next(true);
-        const oldLayer = mapModel.map.findLayerById(layerId) as MapImageLayer;
+        const map = mapModel.map;
+        const oldLayer = map.findLayerById(layerId) as MapImageLayer;
         let isAdded = false;
         if (oldLayer) {
           if (oldLayer.id === layerId && oldLayer.url === layerUrl) {
             isAdded = true;
+            oldLayer.refresh();
           } else {
-            mapModel.map.remove(oldLayer);
+            map.remove(oldLayer);
           }
         }
 
@@ -284,7 +294,7 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
             url: layerUrl
           });
 
-          mapModel.map.add(newImagelayer);  // adds the layer to the map
+          map.add(newImagelayer);  // adds the layer to the map
           const onView = mapModel.mapView.whenLayerView(newImagelayer);
           return from(onView).pipe(
             finalize(() => {

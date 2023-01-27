@@ -18,6 +18,7 @@ export class TestMapComponent implements OnInit {
     { id: 'test5', url: 'https://epic.ensiteusa.com/arcgis/rest/services/DS/pipeTallyGpsTest/MapServer' }
   ];
   sceneView = false;
+  token: string = '18_CCvn1lnGrxGuiya8ulT9ALYKUe0kTAjWAbTe0qMTproZGyv7LWkAiJH3bueCy';
   defaultUrl = this.testMaps[0].url;
   constructor(private cdr: ChangeDetectorRef) { }
 
