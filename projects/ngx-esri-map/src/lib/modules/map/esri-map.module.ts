@@ -16,6 +16,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MapSketchDirective } from './components/map-view/directives/map-sketch.directive';
 import { FeatureTemplateDirective } from './components/map-view/directives/feature-template.directive';
+import { BaseMapGalleryComponent } from './components/base-map-gallery/base-map-gallery.component';
 
 
 @NgModule({
@@ -24,7 +25,8 @@ import { FeatureTemplateDirective } from './components/map-view/directives/featu
     MapUrlDirective,
     MapTocUIComponent,
     MapSketchDirective,
-    FeatureTemplateDirective
+    FeatureTemplateDirective,
+    BaseMapGalleryComponent
   ],
   imports: [
     CommonModule,
