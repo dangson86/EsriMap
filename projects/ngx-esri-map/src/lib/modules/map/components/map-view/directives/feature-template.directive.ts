@@ -1,4 +1,4 @@
-import { Directive, OnDestroy, OnInit, Output, EventEmitter } from '@angular/core';
+import { Directive, OnDestroy, OnInit, Output, EventEmitter, TemplateRef, ViewContainerRef } from '@angular/core';
 import { MapCommonService } from '../../../services/map-common.service';
 import { MapViewComponent } from '../map-view.component';
 
@@ -8,11 +8,11 @@ import { MapViewComponent } from '../map-view.component';
 })
 export class FeatureTemplateDirective implements OnInit, OnDestroy {
 
-    constructor(private mapViewComp: MapViewComponent, private mapCommonService: MapCommonService) { }
+    constructor(private mapViewComp: MapViewComponent, private mapCommonService: MapCommonService, public vcf: ViewContainerRef, public tf: TemplateRef<any>) { }
     ngOnDestroy(): void {
     }
     ngOnInit(): void {
-        console.log("I am (FeatureTemplateDirective) live");
+        // console.log("I am (FeatureTemplateDirective) live", this.vcf, this.tf);
     }
 
 }

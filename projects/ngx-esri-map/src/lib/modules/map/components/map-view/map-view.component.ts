@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef, OnDestroy, Output, EventEmitter, ContentChildren, AfterContentInit, QueryList, Input, ViewChildren, ChangeDetectionStrategy, ChangeDetectorRef, Optional, ContentChild } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, OnDestroy, Output, EventEmitter, ContentChildren, AfterContentInit, QueryList, Input, ViewChildren, ChangeDetectionStrategy, ChangeDetectorRef, Optional, ContentChild, ViewContainerRef } from '@angular/core';
 import { from, Subject, Observable, of, fromEvent, BehaviorSubject } from 'rxjs';
 import { switchMap, tap, takeUntil, shareReplay, mergeMap, toArray, catchError, map, take, finalize } from 'rxjs/operators';
 import { MapCommonService } from '../../services/map-common.service';
@@ -64,7 +64,20 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
   @ViewChild('leftmenuResizeBtn', { static: true }) leftMenuResizeBtn: ElementRef;
   @ContentChildren(MapUrlDirective) layerUrlList!: QueryList<MapUrlDirective>;
   @ContentChild(FeatureTemplateDirective) featureTemplate!: FeatureTemplateDirective;
+  get usingFeatureTemplate() {
+    return this.featureTemplate != null;
+  }
   @ViewChildren(MapTocUIComponent) tocComponents: QueryList<MapTocUIComponent>;
+
+  @ViewChild('featureTemplateContainer', { read: ViewContainerRef, static: false }) private set featureTemplateContainer(container: ViewContainerRef) {
+    if (container) {
+      if (this.identifyResults && this.identifyResults.length > 0 && this.uiConfig.showBottomPannel) {
+        setTimeout(() => {
+          container.createEmbeddedView(this.featureTemplate.tf, { $implicit: this.identifyResults, data: this.identifyResults });
+        }, 100);
+      }
+    }
+  }
 
   private readonly isDestroyed$ = new Subject<void>();
   private mapInitModel: MapInitModel;
@@ -150,7 +163,9 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
       }),
       takeUntil(this.isDestroyed$)
     ).subscribe();
-    console.log(this.featureTemplate);
+  }
+
+  ngAfterViewInit() {
   }
 
   ngOnInit(): void {

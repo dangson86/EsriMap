@@ -40,8 +40,27 @@
 
         <map-url *ngFor="let test of urls; let index = index" [id]="test.id" [url]="test.url"> </map-url>
 
-        <ng-template featureTemplate let-data="data" let-fields="fields">
-            dsfsdfasdf
+        <ng-template featureTemplate let-identifyResults="data">
+            <div class="testDiv" style="  background-color: red;">
+                <table *ngFor="let map of identifyResults">
+                    <tr *ngFor="let item of map.layerResults ">
+                        <td class="feature-layer-name">{{item.layerName}}</td>
+                        <td>
+                            <table class="feature-table">
+                                <thead>
+                                    <th class="col-title" *ngFor="let f of item.fields">{{f.name}}</th>
+                                </thead>
+                                <tbody>
+                                    <tr class="feature-row" *ngFor="let row of item.IdentifyResult">
+                                        <td class="feature-value" *ngFor="let f of item.fields">
+                                            {{row.feature.attributes[f.name]}}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </div>
         </ng-template>
     </map-view>
 
