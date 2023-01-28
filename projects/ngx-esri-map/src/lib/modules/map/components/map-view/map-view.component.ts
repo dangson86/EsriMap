@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild, ElementRef, OnDestroy, Output, EventEmitt
 import { from, Subject, Observable, of, fromEvent, BehaviorSubject } from 'rxjs';
 import { switchMap, tap, takeUntil, shareReplay, mergeMap, toArray, catchError, map, take, finalize } from 'rxjs/operators';
 import { MapCommonService } from '../../services/map-common.service';
-import { MapInitModel, LayerSettingChangeModel, LayerLabelChangeModel, ExecuteIdentifyTaskResult, LooseObject } from '../../models/map-model.model';
+import { MapInitModel, LayerSettingChangeModel, LayerLabelChangeModel, ExecuteIdentifyTaskResult, LooseObject, IServiceToken } from '../../models/map-model.model';
 import { MapUrlDirective } from './directives/map-url.directive';
 import { MapTocUIComponent } from '../map-toc-ui/map-toc-ui.component';
 import Point from "@arcgis/core/geometry/Point";
@@ -50,7 +50,7 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
   get sceneView() {
     return this.sceneView$.value;
   }
-  @Input() set authToken(input: string) {
+  @Input() set authToken(input: IServiceToken) {
     this.setAuthToken(input);
   }
 
@@ -152,9 +152,9 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
   constructor(private mapCommonService: MapCommonService, private elRef: ElementRef, private cdr: ChangeDetectorRef) {
 
   }
-  setAuthToken(authToken: string) {
-    if (authToken) {
-      this.mapCommonService.registerAuthToken(authToken, "https://epic.ensiteusa.com/arcgis/rest/services");
+  setAuthToken(token: IServiceToken) {
+    if (token) {
+      this.mapCommonService.registerAuthToken(token);
     }
   }
   ngAfterContentInit(): void {

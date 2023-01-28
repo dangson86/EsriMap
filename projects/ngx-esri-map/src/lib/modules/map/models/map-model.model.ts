@@ -34,3 +34,9 @@ export interface ExecuteIdentifyTaskResult {
         IdentifyResult: esri.IdentifyResult[];
     }[];
 }
+
+export interface IServiceToken {
+    ssl: boolean;
+    token: string;
+    server: string;
+}

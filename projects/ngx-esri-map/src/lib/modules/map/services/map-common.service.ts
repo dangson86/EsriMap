@@ -10,7 +10,7 @@ import esriRequest from "@arcgis/core/request";
 import IdentifyParameters from '@arcgis/core/rest/support/IdentifyParameters';
 import IdentifyResult from '@arcgis/core/rest/support/IdentifyResult';
 import { Observable, from, of, map, shareReplay } from 'rxjs';
-import { LooseObject, ExecuteIdentifyTaskResult } from '../models/map-model.model';
+import { LooseObject, ExecuteIdentifyTaskResult, IServiceToken } from '../models/map-model.model';
 import * as projection from "@arcgis/core/geometry/projection";
 import * as identify from "@arcgis/core/rest/identify";
 import esriId from "@arcgis/core/identity/IdentityManager";
@@ -35,17 +35,12 @@ export class MapCommonService {
     constructor() {
     }
 
-    registerAuthToken(token: string, server: string, destroyCredentials = true) {
+    registerAuthToken(token: IServiceToken, destroyCredentials = true) {
         if (destroyCredentials) {
             esriId.destroyCredentials();
         }
 
-        esriId.registerToken({
-            ssl: true,
-            token: token,
-            server: server
-        });
-
+        esriId.registerToken(token);
     }
     getUrljsonInfo(url: string) {
         return this.esriRequest(url, { query: { f: 'json' }, responseType: 'json' }).pipe(

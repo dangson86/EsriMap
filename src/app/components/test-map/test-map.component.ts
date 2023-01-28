@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
-import { MapViewComponent } from 'ngx-esri-map';
+import { IServiceToken, MapViewComponent } from 'ngx-esri-map';
 
 @Component({
   selector: 'app-test-map',
@@ -17,8 +17,8 @@ export class TestMapComponent implements OnInit {
     { id: 'wildFire', url: 'https://sampleserver6.arcgisonline.com/arcgis/rest/services/Wildfire/MapServer' },
     { id: 'Recreation', url: 'https://sampleserver6.arcgisonline.com/arcgis/rest/services/Recreation/FeatureServer' }
   ];
-  sceneView = true;
-  token: string = null;
+  sceneView = false;
+  token: IServiceToken = null;
   defaultUrl = this.testMaps[0].url;
   constructor(private cdr: ChangeDetectorRef) { }
 
