@@ -83,47 +83,49 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
   private mapInitModel: MapInitModel;
   get mapInstance() { return this.mapInitModel.map; }
   get mapView() { return this.mapInitModel.mapView; }
-  readonly initMap$: Observable<MapInitModel> = this.mapCommonService.loadEsriBaseScript$.pipe(
-    switchMap((e) => {
-      this.clearStaticText();
-      const newMap: Map = new Map({
-        basemap: 'topo-vector'
-      });
-
-      if (this.mapInitModel) {
-        this.removeOldMap();
-      }
-
-      this.mapInitModel = new MapInitModel();
-      if (this.sceneView) {
-        const tempView: SceneView = new SceneView({
-          container: this.mapViewElement.nativeElement,
-          map: newMap,
-          center: [-95.437389, 29.763206],
-          zoom: 4
+  readonly initMap$: Observable<MapInitModel> = this.sceneView$.pipe(
+    switchMap(isSceneView => this.mapCommonService.loadEsriBaseScript$.pipe(
+      switchMap((scriptLoaded) => {
+        this.clearStaticText();
+        const newMap: Map = new Map({
+          basemap: 'topo-vector'
         });
-        this.mapInitModel.mapView = tempView;
 
-      } else {
-        const tempView: MapView = new MapView({
-          container: this.mapViewElement.nativeElement,
-          map: newMap,
-          center: [-95.437389, 29.763206],
-          zoom: 4
+        if (this.mapInitModel) {
+          this.removeOldMap();
+        }
+
+        this.mapInitModel = new MapInitModel();
+        if (isSceneView) {
+          const tempView: SceneView = new SceneView({
+            container: this.mapViewElement.nativeElement,
+            map: newMap,
+            center: [-95.437389, 29.763206],
+            zoom: 4
+          });
+          this.mapInitModel.mapView = tempView;
+
+        } else {
+          const tempView: MapView = new MapView({
+            container: this.mapViewElement.nativeElement,
+            map: newMap,
+            center: [-95.437389, 29.763206],
+            zoom: 4
+          });
+          this.mapInitModel.mapView = tempView;
+        }
+        const view = this.mapInitModel.mapView;
+        view.ui.move(['zoom', 'navigation-toggle', 'compass'], 'top-right');
+
+        view.watch('scale', e => {
+          this.mapScale = e;
+          this.cdr.markForCheck();
         });
-        this.mapInitModel.mapView = tempView;
-      }
-      const view = this.mapInitModel.mapView;
-      view.ui.move(['zoom', 'navigation-toggle', 'compass'], 'top-right');
 
-      view.watch('scale', e => {
-        this.mapScale = e;
-        this.cdr.markForCheck();
-      });
-
-      this.mapInitModel.map = newMap;
-      return of(this.mapInitModel);
-    }),
+        this.mapInitModel.map = newMap;
+        return of(this.mapInitModel);
+      }),
+    )),
     tap(e => {
       this.loaded.emit(e);
     }),
