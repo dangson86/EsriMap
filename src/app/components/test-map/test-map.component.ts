@@ -11,14 +11,14 @@ export class TestMapComponent implements OnInit {
   urls = [];
 
   testMaps = [
-    { id: 'SantaMonica', url: 'https://services3.arcgis.com/GVgbJbqm8hXASVYi/ArcGIS/rest/services/Santa_Monica_Mountains_Parcels/MapServer' },
+    { id: 'Earthquakes_Since1970', url: 'https://sampleserver6.arcgisonline.com/arcgis/rest/services/Earthquakes_Since1970/MapServer' },
     { id: 'cencus', url: 'https://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer' },
     { id: 'sampleCitiesWorld', url: 'https://sampleserver6.arcgisonline.com/arcgis/rest/services/SampleWorldCities/MapServer' },
     { id: 'wildFire', url: 'https://sampleserver6.arcgisonline.com/arcgis/rest/services/Wildfire/MapServer' },
     { id: 'Recreation', url: 'https://sampleserver6.arcgisonline.com/arcgis/rest/services/Recreation/FeatureServer' }
   ];
-  sceneView = false;
-  token: string = '18_CCvn1lnGrxGuiya8ulT9ALYKUe0kTAjWAbTe0qMTproZGyv7LWkAiJH3bueCy';
+  sceneView = true;
+  token: string = null;
   defaultUrl = this.testMaps[0].url;
   constructor(private cdr: ChangeDetectorRef) { }
 
