@@ -218,12 +218,16 @@ export class MapTocUIComponent implements OnInit, OnDestroy {
       take(1),
     );
   }
-  zoomToMapLayer($event, mapInfo) {
+  zoomToMapLayer($event, mapInfo, isFullExtent = true) {
     $event.preventDefault();
     $event.stopPropagation();
-    let fullExtent = mapInfo?.fullExtent;
-    if (this.mapComponent && fullExtent) {
-      this.mapComponent.zoomToExtent(fullExtent).subscribe();
+    let extent = mapInfo?.fullExtent;
+    if (!isFullExtent) {
+      console.log(mapInfo);
+      extent = mapInfo.initialExtent;
+    }
+    if (this.mapComponent && extent) {
+      this.mapComponent.zoomToExtent(extent).subscribe();
     }
   }
 

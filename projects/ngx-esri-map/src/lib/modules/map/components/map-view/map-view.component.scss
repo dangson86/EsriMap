@@ -22,7 +22,9 @@
 .toc-wrapper {
     position: absolute;
     top: 0;
-    height: 100%;
+    max-height: calc(100% - 40px);
+    display: flex;
+    min-height: 251px;
     width: 25%;
     margin-top: 5px;
 
@@ -130,6 +132,8 @@
     position: relative;
     background-color: white;
     margin-top: 8px;
+
+    z-index: 10;
 
     &.showBottomPanel {
         transition: height 1s;

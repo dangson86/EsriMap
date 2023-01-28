@@ -7,58 +7,63 @@
 
 <div class="mapAndToc">
     <div #mapView class="mapView">map not init</div>
-    <div class="toc-wrapper" #tocWrapper [class.show]="uiConfig.showTocPannel" [class.hide]="!uiConfig.showTocPannel">
-        <mat-tab-group class="tab-group">
-            <mat-tab label="TOC">
-                <div class="tabDiv tocDiv">
-                    <ng-container *ngFor="let layerDirective of layerUrlList; let i=index;">
-                        <map-toc-ui *ngIf="layerDirective.toc" class="toc" [url]="layerDirective.url" [mapScale]="mapScale" [tocIndex]="i" (layerVisibleChange)="onLayerSettingChange($event)"
-                            (layerLabelChange)="onLayerLabelChange($event)">
-                        </map-toc-ui>
-                    </ng-container>
-                </div>
-            </mat-tab>
-            <mat-tab label="Base Map">
-                <div class="basemapDiv">
-                    <lib-base-map-gallery></lib-base-map-gallery>
-                </div>
-            </mat-tab>
-            <mat-tab label="KMZ">
-                <div class="kmzDiv">
-                    KMZ
-                </div>
-            </mat-tab>
-        </mat-tab-group>
 
-        <div class="toc-menu" style="opacity: 1;">
-            <div class="toc-func">
-                <button class="toc-btn" mat-icon-button color="primary" (click)="toggleLeftMenu()" [class.mapIsLoading]="isLoading | async">
-                    <i class="fa-solid fa-bars"></i>
+</div>
+<div class="toc-wrapper" #tocWrapper [class.show]="uiConfig.showTocPannel" [class.hide]="!uiConfig.showTocPannel">
+    <mat-tab-group class="tab-group">
+        <mat-tab label="TOC">
+            <div class="tabDiv tocDiv">
+                <ng-container *ngFor="let layerDirective of layerUrlList; let i=index;">
+                    <map-toc-ui *ngIf="layerDirective.toc" class="toc" [url]="layerDirective.url" [mapScale]="mapScale"
+                        [tocIndex]="i" (layerVisibleChange)="onLayerSettingChange($event)"
+                        (layerLabelChange)="onLayerLabelChange($event)">
+                    </map-toc-ui>
+                </ng-container>
+            </div>
+        </mat-tab>
+        <mat-tab label="Base Map">
+            <div class="basemapDiv">
+                <lib-base-map-gallery></lib-base-map-gallery>
+            </div>
+        </mat-tab>
+        <!-- <mat-tab label="KMZ">
+            <div class="kmzDiv">
+                KMZ
+            </div>
+        </mat-tab> -->
+    </mat-tab-group>
+
+    <div class="toc-menu" style="opacity: 1;">
+        <div class="toc-func">
+            <button class="toc-btn" mat-icon-button color="primary" (click)="toggleLeftMenu()"
+                [class.mapIsLoading]="isLoading | async">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
+
+        <div class="toggle-tools">
+            <div class="toc-func" [class.activedTool]="uiConfig.leftMenuTools.selectedTool === 'identifyTool'">
+                <button class="toc-btn" mat-icon-button color="primary" title="toggle layer identify tool"
+                    (click)="activateTool('identifyTool')">
+                    <i class="fa-solid fa-circle-info"></i>
                 </button>
             </div>
-
-            <div class="toggle-tools">
-                <div class="toc-func" [class.activedTool]="uiConfig.leftMenuTools.selectedTool === 'identifyTool'">
-                    <button class="toc-btn" mat-icon-button color="primary" title="toggle layer identify tool" (click)="activateTool('identifyTool')">
-                        <i class="fa-solid fa-circle-info"></i>
-                    </button>
-                </div>
-                <div class="toc-func" [class.activedTool]="uiConfig.leftMenuTools.selectedTool === 'drawTool'">
-                    <button class="toc-btn" mat-icon-button color="primary" title="toggle layer sketch tool" (click)="activateTool('drawTool')">
-                        <i class="functionBtn" class="fa-solid fa-pen-ruler"></i>
-                    </button>
-                </div>
+            <div class="toc-func" [class.activedTool]="uiConfig.leftMenuTools.selectedTool === 'drawTool'">
+                <button class="toc-btn" mat-icon-button color="primary" title="toggle layer sketch tool"
+                    (click)="activateTool('drawTool')">
+                    <i class="functionBtn" class="fa-solid fa-pen-ruler"></i>
+                </button>
             </div>
-
-
-
-            <div class="toc-func" style="text-align: center;">
-                <span class="toc-btn leftmenuResizeBtn" (mousedown)="onLefPanelResize($event,tocWrapper)">
-                    <i class="fa-solid fa-left-right"></i>
-                </span>
-            </div>
-
         </div>
+
+
+
+        <div class="toc-func" style="text-align: center;">
+            <span class="toc-btn leftmenuResizeBtn" (mousedown)="onLefPanelResize($event,tocWrapper)">
+                <i class="fa-solid fa-left-right"></i>
+            </span>
+        </div>
+
     </div>
 </div>
 <div #bottomPannelWrapper class="bottom-pannel-wrapper" [class.hideBottomPanel]="!uiConfig.showBottomPannel">
@@ -89,7 +94,8 @@
     </div>
     <div class="expand-bar">
         <div class="expand-buttons">
-            <div class="expand-btn resizebar" *ngIf="uiConfig.showBottomPannel" (mousedown)="onBottomPanelResize($event)"> </div>
+            <div class="expand-btn resizebar" *ngIf="uiConfig.showBottomPannel"
+                (mousedown)="onBottomPanelResize($event)"> </div>
             <div class="expand-btn collapsebtn">
                 <mat-icon *ngIf="!uiConfig.showBottomPannel" (click)="toggleBottomPanel()">expand_less</mat-icon>
                 <mat-icon *ngIf="uiConfig.showBottomPannel" (click)="toggleBottomPanel()">expand_more</mat-icon>

@@ -414,6 +414,10 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
   private drawIdentifyRectangle(): Observable<Geometry> {
     return this.initMap$.pipe(
       switchMap(mapModel => {
+        if (!mapModel.mapTools.draw) {
+          throw Error("Identify tool only work in 2D map view");
+        }
+
         const view = mapModel.mapView;
         view.focus();
         const drawAction = mapModel.mapTools.draw.activeAction = mapModel.mapTools.draw.create('rectangle');
