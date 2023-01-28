@@ -5,10 +5,11 @@
         <br />
         <span>Scene view: <input type="checkbox" [(ngModel)]="sceneView" (change)="onMapChange($event)" /></span>
         <input type="text" [(ngModel)]="defaultUrl" style="width: 100%;">
-        <button *ngFor="let test of testMaps;let index = index" (click)="setUrl(test.url)">url {{index}}</button>
+        <button *ngFor="let test of testMaps;let index = index" (click)="setUrl(test.url)">url {{test.id}}</button>
 
         <div>
-            <input #mapUrlInput type="text" style="width: 100%;" value="https://epic.ensiteusa.com/arcgis/rest/services/7351_Delta_Natural_Gas/7351_0002_Lincoln_to_RockCastle/MapServer" />
+            <input #mapUrlInput type="text" style="width: 100%;"
+                value="https://epic.ensiteusa.com/arcgis/rest/services/7351_Delta_Natural_Gas/7351_0002_Lincoln_to_RockCastle/MapServer" />
             <button (click)="addMoreMap(mapUrlInput.value)">add map</button>
         </div>
 
@@ -17,7 +18,7 @@
             <label>add preset map</label>
             <br />
             <button *ngFor="let testMap of testMaps;let index = index" (click)="addMoreMap(testMap)">add map
-                {{index}}</button>
+                {{testMap.id}}</button>
 
         </div>
     </div>

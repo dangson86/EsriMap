@@ -1,0 +1,27 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "npm",
+			"script": "build-lib-watch",
+			"group": "build",
+			"problemMatcher": [],
+			"label": "npm: build-lib-watch",
+			"detail": "npm i && ng build ngx-esri-map --watch"
+		},
+		{
+			"type": "npm",
+			"script": "start",
+			"problemMatcher": [],
+			"label": "npm: start",
+			"detail": "npm i && ng serve -o"
+		},
+		{
+			"label": "run-dev",
+			"dependsOn": [
+				"npm: build-lib-watch",
+				"npm: start"
+			]
+		}
+	]
+}

@@ -11,11 +11,11 @@ export class TestMapComponent implements OnInit {
   urls = [];
 
   testMaps = [
-    { id: 'test1', url: 'https://epic.ensiteusa.com/arcgis/rest/services/DS/DemoClient_Dalas_oil/MapServer' },
-    { id: 'test2', url: 'https://epic.ensiteusa.com/arcgis/rest/services/DS/EngineeringMarkup/MapServer' },
-    { id: 'test3', url: 'https://epic.ensiteusa.com/arcgis/rest/services/DS/LearnOptiRoute2/MapServer' },
-    { id: 'test4', url: 'https://epic.ensiteusa.com/arcgis/rest/services/DS/LearnOptiRoute/MapServer' },
-    { id: 'test5', url: 'https://epic.ensiteusa.com/arcgis/rest/services/DS/pipeTallyGpsTest/MapServer' }
+    { id: 'SantaMonica', url: 'https://services3.arcgis.com/GVgbJbqm8hXASVYi/ArcGIS/rest/services/Santa_Monica_Mountains_Parcels/MapServer' },
+    { id: 'cencus', url: 'https://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer' },
+    { id: 'sampleCitiesWorld', url: 'https://sampleserver6.arcgisonline.com/arcgis/rest/services/SampleWorldCities/MapServer' },
+    { id: 'wildFire', url: 'https://sampleserver6.arcgisonline.com/arcgis/rest/services/Wildfire/MapServer' },
+    { id: 'Recreation', url: 'https://sampleserver6.arcgisonline.com/arcgis/rest/services/Recreation/FeatureServer' }
   ];
   sceneView = false;
   token: string = '18_CCvn1lnGrxGuiya8ulT9ALYKUe0kTAjWAbTe0qMTproZGyv7LWkAiJH3bueCy';
