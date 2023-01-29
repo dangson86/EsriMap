@@ -54,6 +54,13 @@
                     <i class="functionBtn" class="fa-solid fa-pen-ruler"></i>
                 </button>
             </div>
+
+            <div class="toc-func" [class.activedTool]="uiConfig.leftMenuTools.selectedTool === 'zoomIn'">
+                <button class="toc-btn" mat-icon-button color="primary" title="Zoom In"
+                    (click)="activateTool('zoomIn')">
+                    <i class="fa-solid fa-magnifying-glass-plus"></i>
+                </button>
+            </div>
         </div>
 
 

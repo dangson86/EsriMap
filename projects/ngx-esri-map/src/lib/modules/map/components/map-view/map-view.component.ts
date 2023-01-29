@@ -69,15 +69,12 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
   }
   @ViewChildren(MapTocUIComponent) tocComponents: QueryList<MapTocUIComponent>;
 
+  private _featureTemplateContainer: ViewContainerRef;
   @ViewChild('featureTemplateContainer', { read: ViewContainerRef, static: false }) private set featureTemplateContainer(container: ViewContainerRef) {
-    if (container) {
-      if (this.identifyResults && this.identifyResults.length > 0 && this.uiConfig.showBottomPannel) {
-        setTimeout(() => {
-          container.createEmbeddedView(this.featureTemplate.tf, { $implicit: this.identifyResults, data: this.identifyResults });
-        }, 100);
-      }
-    }
+    this._featureTemplateContainer = container;
+    this.setFeatureTemplateContainer();
   }
+
 
   private readonly isDestroyed$ = new Subject<void>();
   private mapInitModel: MapInitModel;
@@ -197,30 +194,54 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
   activateTool(toolName: leftMemuToolNames) {
     if (this.uiConfig.leftMenuTools.selectedTool !== toolName) {
       this.uiConfig.leftMenuTools.selectedTool = toolName;
+
+      switch (this.uiConfig.leftMenuTools.selectedTool) {
+        case 'identifyTool':
+          this.activateIdentifyTool();
+          break;
+        case 'zoomIn':
+          this.activateZoomTool(true);
+          break;
+        case 'zoomOut':
+          this.activateZoomTool(false);
+          break;
+        case 'drawTool':
+          this.resetDrawAction();
+          break;
+        default:
+          break;
+      }
     } else {
       this.uiConfig.leftMenuTools.selectedTool = 'noSelectTool';
       this.resetAllTools();
+      return;
     }
 
     this.toolChange.emit(this.uiConfig.leftMenuTools.selectedTool);
-    switch (this.uiConfig.leftMenuTools.selectedTool) {
-      case 'identifyTool':
-        this.activateIdentifyTool();
-        break;
-      case 'zoomIn':
-        break;
-      case 'zoomOut':
-        break;
-      case 'drawTool':
-        this.resetDrawToolAction();
-        break;
-      default:
-        break;
-    }
+
+  }
+
+  private activateZoomTool(zoomIn: boolean) {
+    this.drawRectangle().pipe(
+      switchMap(geometry => {
+        if (zoomIn) {
+          return this.zoomToExtent(geometry.extent);
+        } else {
+          return this.zoomToExtent(geometry.extent);
+        }
+      })
+    ).subscribe({
+      next: e => {
+        this.activateZoomTool(zoomIn);
+      },
+      error: err => {
+        this.resetAllTools();
+      }
+    });
   }
 
   private activateIdentifyTool() {
-    this.drawIdentifyRectangle().pipe(
+    this.drawRectangle().pipe(
       tap(e => {
         this.isLoading.next(true);
       }),
@@ -261,22 +282,27 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
         return this.identifyResults;
       }),
       tap(e => {
-        this.clearSelectedTool();
         this.isLoading.next(false);
         this.identifyReturn.emit(e);
+        this.setFeatureTemplateContainer();
       }),
-    ).subscribe(e => {
-      console.log(e);
+    ).subscribe({
+      next: e => {
+        if (this.uiConfig.leftMenuTools.selectedTool == 'identifyTool') {
+          this.activateIdentifyTool();
+        }
+      }
     });
   }
-  private resetDrawToolAction() {
+  private resetDrawAction() {
     const drawAction = this.mapInitModel.mapTools.draw.activeAction;
     if (drawAction) {
-      this.mapInitModel.mapTools.draw.destroy();
+      this.mapInitModel.mapTools.draw.reset();
     }
   }
   private resetAllTools() {
-    this.resetDrawToolAction();
+    this.resetDrawAction();
+    this.clearSelectedTool();
     this.cdr.markForCheck();
   }
 
@@ -340,11 +366,11 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
     }
   }
 
-  zoomToExtent(fullExtent: Extent) {
+  zoomToExtent(extent: Extent) {
     return this.initMap$.pipe(
       switchMap(mapModel => {
         const view = mapModel.mapView;
-        return this.mapCommonService.projectGeometry([fullExtent], view.spatialReference).pipe(
+        return this.mapCommonService.projectGeometry([extent], view.spatialReference).pipe(
           switchMap(geometries => from(view.goTo(geometries)).pipe(
             catchError(error => {
               console.error('zoom fail', error);
@@ -355,6 +381,7 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
       })
     );
   }
+
   onLayerSettingChange(event: LayerSettingChangeModel) {
     this.setLayerVisible(event.mapUrl, event.layerid, event.visible);
   }
@@ -411,11 +438,22 @@ export class MapViewComponent implements OnInit, OnDestroy, AfterContentInit {
     ).subscribe();
   }
 
-  private drawIdentifyRectangle(): Observable<Geometry> {
+  private setFeatureTemplateContainer() {
+    if (this._featureTemplateContainer) {
+      this._featureTemplateContainer.clear();
+      if (this.identifyResults && this.identifyResults.length > 0 && this.uiConfig.showBottomPannel) {
+        setTimeout(() => {
+          this._featureTemplateContainer.createEmbeddedView(this.featureTemplate.tf, { $implicit: this.identifyResults, data: this.identifyResults });
+        }, 100);
+      }
+    }
+  }
+
+  private drawRectangle(): Observable<Geometry> {
     return this.initMap$.pipe(
       switchMap(mapModel => {
         if (!mapModel.mapTools.draw) {
-          throw Error("Identify tool only work in 2D map view");
+          throw Error("Draw tool only work in 2D map view");
         }
 
         const view = mapModel.mapView;
