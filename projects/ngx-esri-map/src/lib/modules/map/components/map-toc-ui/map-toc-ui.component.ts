@@ -73,6 +73,7 @@ export class MapTocUIComponent implements OnInit, OnDestroy {
 
 
   @Input() tocIndex = 0;
+  private extMenuLayer: SublayerTree;
   @Input() set mapScale(input: number) {
     this.mapScale$.next(input);
     this.temp = input;
@@ -213,14 +214,16 @@ export class MapTocUIComponent implements OnInit, OnDestroy {
     return list;
   }
 
-  popupExtMenu(event: MouseEvent, layer: SublayerTree, layers: SublayerTree[]) {
+  popupExtMenu(event: MouseEvent) {
     event.preventDefault();
     event.stopPropagation();
   }
-  zoomToLayer(layer: SublayerTree) {
-
+  setLayerForExtMenu(layer: SublayerTree, layers: SublayerTree[]) {
+    this.extMenuLayer = layer;
+  }
+  zoomToLayer() {
     if (this.mapComponent) {
-      this.mapComponent.zoomToExtent(layer.fullExtent).subscribe();
+      this.mapComponent.zoomToExtent(this.extMenuLayer.fullExtent).subscribe();
     }
   }
   getSubLayers(): Observable<Sublayer[]> {

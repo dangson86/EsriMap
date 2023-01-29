@@ -55,25 +55,10 @@
                     *ngIf="layer.checked && layer.hasLegends">expand_less</mat-icon>
 
 
-                <button mat-icon-button [matMenuTriggerFor]="menu">
+                <button mat-icon-button [matMenuTriggerFor]="extMenu" (click)="setLayerForExtMenu(layer,layers)">
                     <mat-icon>more_vert</mat-icon>
                 </button>
-                <mat-menu #menu="matMenu">
-                    <div (click)="popupExtMenu($event, layer, layers)">
-                        <p>
-                            <label>Menu</label>
-                        </p>
 
-                        <p>
-                            Zoom to layer
-                            <button mat-icon-button color="primary" title="Zoom To Layer" (click)="zoomToLayer(layer)">
-                                <i class="fa-solid fa-magnifying-glass-plus"></i>
-                            </button>
-                        </p>
-
-                        <button mat-menu-item>Item 2</button>
-                    </div>
-                </mat-menu>
             </span>
             <div class="legendDiv animated" [class.hide]="!layer.showLegendImage" [class.show]="layer.showLegendImage"
                 *ngIf="layer.checked && layer.hasLegends">
@@ -106,3 +91,19 @@
         <label>{{legend?.label}}</label>
     </span>
 </ng-template>
+
+<mat-menu #extMenu="matMenu">
+    <div (click)="popupExtMenu($event)">
+        <p>
+            <label>Menu</label>
+        </p>
+        <p>
+            Zoom to layer
+            <button mat-icon-button color="primary" title="Zoom To Layer" (click)="zoomToLayer()">
+                <i class="fa-solid fa-magnifying-glass-plus"></i>
+            </button>
+        </p>
+
+        <button mat-menu-item>Item 2</button>
+    </div>
+</mat-menu>
