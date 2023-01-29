@@ -213,6 +213,16 @@ export class MapTocUIComponent implements OnInit, OnDestroy {
     return list;
   }
 
+  popupExtMenu(event: MouseEvent, layer: SublayerTree, layers: SublayerTree[]) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+  zoomToLayer(layer: SublayerTree) {
+
+    if (this.mapComponent) {
+      this.mapComponent.zoomToExtent(layer.fullExtent).subscribe();
+    }
+  }
   getSubLayers(): Observable<Sublayer[]> {
     return this.tocLayerTree$.pipe(
       take(1),
